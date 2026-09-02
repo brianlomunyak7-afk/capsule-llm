@@ -19,4 +19,4 @@ capsuleButton.addEventListener("click", async () => {
             console.log("Captured:", response);
         }
     );
-})
+});

@@ -3,19 +3,23 @@
   "name": "LLM Capsule",
   "version": "0.1.0",
   "description": "Capture and continue AI conversations across different LLMs.",
-  "action": {
-    "default_title": "LLM Capsule",
-    "default_popup": "popup/popup.html"
-  },
   "permissions": [
     "storage",
     "activeTab",
     "scripting"
   ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_title": "LLM Capsule",
+    "default_popup": "popup/popup.html"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["capsule/capture.js"]
+      "js": ["capsule/capture.js"],
+      "run_at": "document_idle"
     }
   ]
 }

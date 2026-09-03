@@ -18,11 +18,6 @@ capsuleButton.addEventListener("click", async () => {
             throw new Error("No active tab found");
         }
 
-        await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            files: ["capsule/capture.js"]
-        });
-
         const response = await chrome.tabs.sendMessage(tab.id, {
             action: "capturePage"
         });
@@ -31,20 +26,38 @@ capsuleButton.addEventListener("click", async () => {
             throw new Error("No capture response");
         }
 
+        const capsule = {
+            app: "ChatGPT",
+            title: response.title || tab.title || "Untitled Conversation",
+            createdAt: new Date().toISOString(),
+            sourceUrl: tab.url,
+            messages: response.messages || [
+                {
+                    role: "unknown",
+                    content: response.text || ""
+                }
+            ]
+        };
+
         await chrome.storage.local.set({
-            latestCapsule: {
-                text: response.text,
-                createdAt: new Date().toISOString(),
-                sourceUrl: tab.url,
-                sourceTitle: tab.title
-            }
+            latestCapsule: capsule
         });
+
+        capsuleOutput.textContent = JSON.stringify(
+            capsule,
+            null,
+            2
+        );
 
         capsuleButton.textContent = "Capsule Saved ✓";
 
     } catch (error) {
         console.error("Capture error:", error);
+
         capsuleButton.textContent = "Capture failed";
+
+        capsuleOutput.textContent =
+            "Capture failed:\n\n" + error.message;
     }
 });
 
@@ -89,6 +102,7 @@ exportButton.addEventListener("click", async () => {
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement("a");
+
     link.href = url;
     link.download = "llm-capsule.json";
 
@@ -101,4 +115,4 @@ exportButton.addEventListener("click", async () => {
     setTimeout(() => {
         exportButton.textContent = "Export Capsule";
     }, 2000);
-});
+})

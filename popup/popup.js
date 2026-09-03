@@ -33,4 +33,4 @@ capsuleButton.addEventListener("click", async () => {
         console.error("Capture error:", error);
         capsuleButton.textContent = "Capture failed";
     }
-})
+});

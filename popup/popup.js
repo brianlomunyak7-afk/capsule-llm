@@ -90,7 +90,6 @@ capsuleButton.addEventListener("click", async () => {
     messageCount: messages.length,
 
     messages: messages
-};
         };
 
         await chrome.storage.local.set({

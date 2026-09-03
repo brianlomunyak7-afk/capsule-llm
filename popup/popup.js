@@ -18,25 +18,70 @@ capsuleButton.addEventListener("click", async () => {
             throw new Error("No active tab found");
         }
 
-        const response = await chrome.tabs.sendMessage(tab.id, {
-            action: "capturePage"
+        const results = await chrome.scripting.executeScript({
+            target: {
+                tabId: tab.id
+            },
+
+            func: () => {
+                const messageElements = document.querySelectorAll(
+                    '[data-message-author-role]'
+                );
+
+                const messages = [];
+
+                messageElements.forEach((element) => {
+                    const role = element.getAttribute(
+                        "data-message-author-role"
+                    );
+
+                    const content = element.innerText.trim();
+
+                    if (!content) {
+                        return;
+                    }
+
+                    messages.push({
+                        role: role,
+                        content: content
+                    });
+                });
+
+                return {
+                    title: document.title,
+                    url: window.location.href,
+                    messages: messages,
+                    pageText: document.body.innerText
+                };
+            }
         });
 
-        if (!response || !response.success) {
-            throw new Error("No capture response");
+        const captured = results[0].result;
+
+        if (!captured) {
+            throw new Error("Nothing was captured");
+        }
+
+        let messages = captured.messages;
+
+        /*
+         * Fallback if no structured messages were detected.
+         */
+        if (!messages || messages.length === 0) {
+            messages = [
+                {
+                    role: "unknown",
+                    content: captured.pageText || ""
+                }
+            ];
         }
 
         const capsule = {
             app: "ChatGPT",
-            title: response.title || tab.title || "Untitled Conversation",
+            title: captured.title || "Untitled Conversation",
             createdAt: new Date().toISOString(),
-            sourceUrl: tab.url,
-            messages: response.messages || [
-                {
-                    role: "unknown",
-                    content: response.text || ""
-                }
-            ]
+            sourceUrl: captured.url,
+            messages: messages
         };
 
         await chrome.storage.local.set({
@@ -96,7 +141,9 @@ exportButton.addEventListener("click", async () => {
 
     const blob = new Blob(
         [capsuleData],
-        { type: "application/json" }
+        {
+            type: "application/json"
+        }
     );
 
     const url = URL.createObjectURL(blob);
@@ -115,4 +162,4 @@ exportButton.addEventListener("click", async () => {
     setTimeout(() => {
         exportButton.textContent = "Export Capsule";
     }, 2000);
-});
+})

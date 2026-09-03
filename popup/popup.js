@@ -77,11 +77,20 @@ capsuleButton.addEventListener("click", async () => {
         }
 
         const capsule = {
-            app: "ChatGPT",
-            title: captured.title || "Untitled Conversation",
-            createdAt: new Date().toISOString(),
-            sourceUrl: captured.url,
-            messages: messages
+    capsuleVersion: "1.0",
+
+    app: "ChatGPT",
+
+    title: captured.title || "Untitled Conversation",
+
+    createdAt: new Date().toISOString(),
+
+    sourceUrl: captured.url,
+
+    messageCount: messages.length,
+
+    messages: messages
+};
         };
 
         await chrome.storage.local.set({

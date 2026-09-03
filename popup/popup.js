@@ -1,5 +1,6 @@
 const capsuleButton = document.getElementById("capsuleButton");
 const viewButton = document.getElementById("viewButton");
+const exportButton = document.getElementById("exportButton");
 const capsuleOutput = document.getElementById("capsuleOutput");
 
 
@@ -30,7 +31,6 @@ capsuleButton.addEventListener("click", async () => {
             throw new Error("No capture response");
         }
 
-        // Save capsule
         await chrome.storage.local.set({
             latestCapsule: {
                 text: response.text,
@@ -49,7 +49,7 @@ capsuleButton.addEventListener("click", async () => {
 });
 
 
-// VIEW SAVED CAPSULE
+// VIEW CAPSULE
 viewButton.addEventListener("click", async () => {
     const result = await chrome.storage.local.get("latestCapsule");
 
@@ -63,4 +63,42 @@ viewButton.addEventListener("click", async () => {
         null,
         2
     );
+});
+
+
+// EXPORT CAPSULE
+exportButton.addEventListener("click", async () => {
+    const result = await chrome.storage.local.get("latestCapsule");
+
+    if (!result.latestCapsule) {
+        capsuleOutput.textContent = "No saved capsule to export.";
+        return;
+    }
+
+    const capsuleData = JSON.stringify(
+        result.latestCapsule,
+        null,
+        2
+    );
+
+    const blob = new Blob(
+        [capsuleData],
+        { type: "application/json" }
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "llm-capsule.json";
+
+    link.click();
+
+    URL.revokeObjectURL(url);
+
+    exportButton.textContent = "Exported ✓";
+
+    setTimeout(() => {
+        exportButton.textContent = "Export Capsule";
+    }, 2000);
 });

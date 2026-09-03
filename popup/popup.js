@@ -22,9 +22,19 @@ capsuleButton.addEventListener("click", async () => {
             action: "capturePage"
         });
 
-        if (response && response.success) {
-            capsuleButton.textContent = "Capsule Created ✓";
-            console.log("Captured:", response.text);
+       if (response && response.success) {
+    await chrome.storage.local.set({
+        latestCapsule: {
+            text: response.text,
+            createdAt: new Date().toISOString(),
+            sourceUrl: tab.url,
+            sourceTitle: tab.title
+        }
+    });
+
+    capsuleButton.textContent = "Capsule Saved ✓";
+    console.log("Capsule saved:", response.text);
+}
         } else {
             throw new Error("No capture response");
         }

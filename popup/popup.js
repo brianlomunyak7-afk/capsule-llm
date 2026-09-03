@@ -115,4 +115,4 @@ exportButton.addEventListener("click", async () => {
     setTimeout(() => {
         exportButton.textContent = "Export Capsule";
     }, 2000);
-})
+});

@@ -34,8 +34,7 @@ capsuleButton.addEventListener("click", async () => {
 
     capsuleButton.textContent = "Capsule Saved ✓";
     console.log("Capsule saved:", response.text);
-}
-        } else {
+      } else {
             throw new Error("No capture response");
         }
 

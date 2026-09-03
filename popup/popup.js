@@ -1,22 +1,36 @@
 const capsuleButton = document.getElementById("capsuleButton");
 
 capsuleButton.addEventListener("click", async () => {
-    const [tab] = await chrome.tabs.query({
-        active: true,
-        currentWindow: true
-    });
+    capsuleButton.textContent = "Capturing...";
 
-    chrome.tabs.sendMessage(
-        tab.id,
-        { action: "capturePage" },
-        (response) => {
-            if (chrome.runtime.lastError) {
-                capsuleButton.textContent = "Capture failed";
-                return;
-            }
+    try {
+        const [tab] = await chrome.tabs.query({
+            active: true,
+            currentWindow: true
+        });
 
-            capsuleButton.textContent = "Capsule Created ✓";
-            console.log("Captured:", response);
+        if (!tab || !tab.id) {
+            throw new Error("No active tab found");
         }
-    );
-});
+
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ["capsule/capture.js"]
+        });
+
+        const response = await chrome.tabs.sendMessage(tab.id, {
+            action: "capturePage"
+        });
+
+        if (response && response.success) {
+            capsuleButton.textContent = "Capsule Created ✓";
+            console.log("Captured:", response.text);
+        } else {
+            throw new Error("No capture response");
+        }
+
+    } catch (error) {
+        console.error("Capture error:", error);
+        capsuleButton.textContent = "Capture failed";
+    }
+})

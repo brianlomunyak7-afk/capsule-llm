@@ -4,7 +4,10 @@ const exportButton = document.getElementById("exportButton");
 const capsuleOutput = document.getElementById("capsuleOutput");
 
 
+// ===============================
 // CREATE CAPSULE
+// ===============================
+
 capsuleButton.addEventListener("click", async () => {
     capsuleButton.textContent = "Capturing...";
 
@@ -64,9 +67,7 @@ capsuleButton.addEventListener("click", async () => {
 
         let messages = captured.messages;
 
-        /*
-         * Fallback if no structured messages were detected.
-         */
+        // Fallback if structured messages are not detected
         if (!messages || messages.length === 0) {
             messages = [
                 {
@@ -76,26 +77,32 @@ capsuleButton.addEventListener("click", async () => {
             ];
         }
 
+        // ===============================
+        // BUILD CAPSULE
+        // ===============================
+
         const capsule = {
-    capsuleVersion: "1.0",
+            capsuleVersion: "1.0",
 
-    app: "ChatGPT",
+            app: "ChatGPT",
 
-    title: captured.title || "Untitled Conversation",
+            title: captured.title || "Untitled Conversation",
 
-    createdAt: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
 
-    sourceUrl: captured.url,
+            sourceUrl: captured.url,
 
-    messageCount: messages.length,
+            messageCount: messages.length,
 
-    messages: messages
+            messages: messages
         };
 
+        // Save capsule
         await chrome.storage.local.set({
             latestCapsule: capsule
         });
 
+        // Show capsule
         capsuleOutput.textContent = JSON.stringify(
             capsule,
             null,
@@ -115,12 +122,19 @@ capsuleButton.addEventListener("click", async () => {
 });
 
 
-// VIEW CAPSULE
+// ===============================
+// VIEW SAVED CAPSULE
+// ===============================
+
 viewButton.addEventListener("click", async () => {
-    const result = await chrome.storage.local.get("latestCapsule");
+    const result = await chrome.storage.local.get(
+        "latestCapsule"
+    );
 
     if (!result.latestCapsule) {
-        capsuleOutput.textContent = "No saved capsule found.";
+        capsuleOutput.textContent =
+            "No saved capsule found.";
+
         return;
     }
 
@@ -132,12 +146,19 @@ viewButton.addEventListener("click", async () => {
 });
 
 
+// ===============================
 // EXPORT CAPSULE
+// ===============================
+
 exportButton.addEventListener("click", async () => {
-    const result = await chrome.storage.local.get("latestCapsule");
+    const result = await chrome.storage.local.get(
+        "latestCapsule"
+    );
 
     if (!result.latestCapsule) {
-        capsuleOutput.textContent = "No saved capsule to export.";
+        capsuleOutput.textContent =
+            "No saved capsule to export.";
+
         return;
     }
 
@@ -159,6 +180,7 @@ exportButton.addEventListener("click", async () => {
     const link = document.createElement("a");
 
     link.href = url;
+
     link.download = "llm-capsule.json";
 
     link.click();
@@ -170,4 +192,4 @@ exportButton.addEventListener("click", async () => {
     setTimeout(() => {
         exportButton.textContent = "Export Capsule";
     }, 2000);
-});
+}

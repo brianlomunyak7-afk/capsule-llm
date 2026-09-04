@@ -92,7 +92,7 @@ capsuleButton.addEventListener("click", async () => {
     messages: messages
         };
 
-        chrome.storage.local.set({
+        await chrome.storage.local.set({
             latestCapsule: capsule
         });
 

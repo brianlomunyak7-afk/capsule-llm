@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "description": "Capture and continue AI conversations across different LLMs.",
   "action": {
-    "default_title": "LLM Capsule"
+    "default_title": "LLM Capsule",
+    "default_popup": "popup/popup.html"
   },
   "permissions": [
     "storage"

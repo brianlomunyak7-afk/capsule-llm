@@ -1,5 +1,5 @@
 {
-  "manifest_version": 3,
+  "manifest.json_version": 3,
   "name": "LLM Capsule",
   "version": "0.1.0",
   "description": "Capture and continue AI conversations across different LLMs.",

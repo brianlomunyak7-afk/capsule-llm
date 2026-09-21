@@ -430,25 +430,4 @@ importFile.addEventListener(
 
 
         } catch (error) {
-
-            console.error(
-                "Import error:",
-                error
-            );
-
-
-            status.textContent =
-                "Import failed";
-
-
-            capsuleOutput.textContent =
-                error.message;
-
-        }
-
-
-        // Reset file selector
-        importFile.value = "";
-
-    }
-);
+f

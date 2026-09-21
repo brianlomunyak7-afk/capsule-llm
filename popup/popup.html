@@ -3,20 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>LLM Capsule</title>
+
+    <link rel="stylesheet" href="popup.css">
 </head>
 
 <body>
-    <h1>🟣 LLM Capsule</h1>
 
-    <p>Carry your conversation anywhere.</p>
+    <div class="container">
 
-    <button id="capsuleButton">Create Capsule</button>
-    <button id="viewButton">View Saved Capsule</button>
-    <button id="exportButton">Export Capsule</button>
+        <h1>🟣 LLM Capsule</h1>
 
-    <pre id="capsuleOutput"></pre>
+        <p class="tagline">
+            Carry your conversation anywhere.
+        </p>
+
+        <div class="buttons">
+
+            <button id="capsuleButton">
+                Create Capsule
+            </button>
+
+            <button id="viewButton">
+                View Saved Capsule
+            </button>
+
+            <button id="exportButton">
+                Export Capsule
+            </button>
+
+            <button id="importButton">
+                Import Capsule
+            </button>
+
+        </div>
+
+        <!-- Hidden file selector -->
+        <input
+            type="file"
+            id="importFile"
+            accept=".json"
+            hidden
+        >
+
+        <div class="status" id="status"></div>
+
+        <pre id="capsuleOutput"></pre>
+
+    </div>
 
     <script src="popup.js"></script>
+
 </body>
-</ht
+</html>

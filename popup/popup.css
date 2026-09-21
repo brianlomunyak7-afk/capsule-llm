@@ -1,1 +1,110 @@
-hi there
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+
+    width: 380px;
+
+    min-height: 500px;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background: #111318;
+
+    color: #ffffff;
+}
+
+.container {
+    padding: 20px;
+}
+
+h1 {
+    margin: 0;
+
+    font-size: 22px;
+}
+
+.tagline {
+    margin-top: 6px;
+
+    margin-bottom: 20px;
+
+    color: #a9abb3;
+
+    font-size: 14px;
+}
+
+.buttons {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+button {
+    width: 100%;
+
+    padding: 11px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #252936;
+
+    color: white;
+
+    font-size: 14px;
+
+    cursor: pointer;
+}
+
+button:hover {
+    background: #343847;
+}
+
+#capsuleButton {
+    background: #6d3df5;
+}
+
+#capsuleButton:hover {
+    background: #7d51ff;
+}
+
+.status {
+    margin-top: 16px;
+
+    font-size: 13px;
+
+    color: #a9abb3;
+}
+
+#capsuleOutput {
+    margin-top: 12px;
+
+    padding: 12px;
+
+    max-height: 260px;
+
+    overflow: auto;
+
+    background: #0b0d11;
+
+    border: 1px solid #292d38;
+
+    border-radius: 8px;
+
+    white-space: pre-wrap;
+
+    word-break: break-word;
+
+    font-size: 11px;
+
+    line-height: 1.5;
+}

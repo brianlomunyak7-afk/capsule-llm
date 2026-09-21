@@ -11,64 +11,104 @@
 
 <body>
 
-    <div class="container">
+<div class="container">
 
-        <h1>🟣 LLM Capsule</h1>
+    <header class="header">
 
-        <p class="tagline">
-            Carry your conversation anywhere.
-        </p>
-
-        <div class="buttons">
-
-            <button id="capsuleButton">
-                Create Capsule
-            </button>
-
-            <button id="viewButton">
-                View Saved Capsule
-            </button>
-
-            <button id="exportButton">
-                Export Capsule
-            </button>
-
-            <button id="importButton">
-                Import Capsule
-            </button>
-
-            <button id="continueButton">
-                Continue Conversation
-            </button>
-
-            <button id="libraryButton">
-                📦 Capsule Library
-            </button>
-
+        <div class="logo">
+            🟣
         </div>
 
-        <input
-            type="file"
-            id="importFile"
-            accept=".json"
-            hidden
-        >
+        <div>
+            <h1>LLM Capsule</h1>
 
-        <div
-            class="status"
-            id="status">
+            <p>
+                Carry your conversation anywhere.
+            </p>
         </div>
 
-        <pre id="capsuleOutput"></pre>
+    </header>
 
-        <div
-            id="library"
-            class="library">
-        </div>
 
+    <section class="primary-actions">
+
+        <button
+            id="capsuleButton"
+            class="primary-button">
+
+            ✨ Create Capsule
+
+        </button>
+
+        <button id="libraryButton">
+
+            📦 Capsule Library
+
+        </button>
+
+    </section>
+
+
+    <section class="secondary-actions">
+
+        <button id="viewButton">
+            View Saved
+        </button>
+
+        <button id="exportButton">
+            Export
+        </button>
+
+        <button id="importButton">
+            Import
+        </button>
+
+        <button id="continueButton">
+            Continue
+        </button>
+
+    </section>
+
+
+    <input
+        type="file"
+        id="importFile"
+        accept=".json"
+        hidden
+    >
+
+
+    <div
+        id="status"
+        class="status">
     </div>
 
-    <script src="popup.js"></script>
+
+    <section
+        id="library"
+        class="library">
+
+    </section>
+
+
+    <pre
+        id="capsuleOutput"
+        class="capsule-output">
+    </pre>
+
+
+    <footer>
+
+        <span>LLM Capsule</span>
+
+        <span>v0.2.0</span>
+
+    </footer>
+
+</div>
+
+
+<script src="popup.js"></script>
 
 </body>
 </html>

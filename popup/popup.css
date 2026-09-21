@@ -1,134 +1,391 @@
+* {
+    box-sizing: border-box;
+}
+
+
 body {
     margin: 0;
-    padding: 0;
-    width: 360px;
-    font-family: Arial, sans-serif;
-    background: #0f0f14;
+
+    width: 380px;
+
+    min-height: 500px;
+
+    font-family:
+        Inter,
+        Arial,
+        sans-serif;
+
+    background: #0b0b12;
+
     color: #ffffff;
 }
 
+
 .container {
-    padding: 20px;
+    padding: 18px;
 }
 
-h1 {
-    margin: 0;
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 20px;
+}
+
+
+.logo {
+    width: 42px;
+
+    height: 42px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: #18152b;
+
     font-size: 22px;
 }
 
-.tagline {
-    margin-top: 6px;
-    color: #999;
-    font-size: 13px;
+
+.header h1 {
+    margin: 0;
+
+    font-size: 20px;
+
+    font-weight: 700;
 }
 
-.buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 18px;
+
+.header p {
+    margin: 4px 0 0;
+
+    color: #858595;
+
+    font-size: 12px;
 }
+
+
+/* =========================
+   BUTTONS
+========================= */
 
 button {
     border: none;
-    border-radius: 8px;
-    padding: 10px;
+
+    border-radius: 9px;
+
+    padding: 10px 12px;
+
     cursor: pointer;
-    background: #242432;
-    color: white;
+
+    background: #1c1c28;
+
+    color: #ffffff;
+
+    font-size: 12px;
+
+    transition:
+        background 0.15s ease,
+        transform 0.1s ease;
+}
+
+
+button:hover {
+    background: #29293a;
+}
+
+
+button:active {
+    transform: scale(0.98);
+}
+
+
+.primary-actions {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+
+.primary-button {
+    background: #6c4cff;
+
+    font-weight: 600;
+
     font-size: 13px;
 }
 
-button:hover {
-    background: #343448;
-}
 
-#capsuleButton {
-    background: #6c4cff;
-}
-
-#capsuleButton:hover {
+.primary-button:hover {
     background: #7b61ff;
 }
 
-.status {
-    margin-top: 12px;
-    font-size: 12px;
-    color: #aaa;
+
+.secondary-actions {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 6px;
+
+    margin-top: 8px;
 }
 
-#capsuleOutput {
-    margin-top: 12px;
-    max-height: 220px;
-    overflow: auto;
-    background: #09090d;
-    border-radius: 8px;
-    padding: 10px;
+
+.secondary-actions button {
+    padding: 9px 5px;
+
     font-size: 11px;
-    white-space: pre-wrap;
-    word-break: break-word;
 }
 
 
-/* ============================= */
-/* CAPSULE LIBRARY */
-/* ============================= */
+/* =========================
+   STATUS
+========================= */
+
+.status {
+    min-height: 18px;
+
+    margin-top: 12px;
+
+    color: #9a9aaa;
+
+    font-size: 11px;
+}
+
+
+/* =========================
+   LIBRARY
+========================= */
 
 .library {
-    margin-top: 18px;
-}
-
-.library > p {
-    color: #888;
-    font-size: 13px;
+    margin-top: 12px;
 }
 
 
-.capsule-card {
-    background: #181820;
-    border: 1px solid #2a2a38;
-    border-radius: 10px;
-    padding: 12px;
+.library-header {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
     margin-bottom: 10px;
 }
 
 
-.capsule-card h3 {
-    margin: 0 0 6px 0;
+.library-title {
+    margin: 0;
+
     font-size: 14px;
-    color: #ffffff;
 }
 
 
-.capsule-card p {
-    margin: 0 0 10px 0;
-    color: #888;
+.library-count {
+    color: #777789;
+
     font-size: 11px;
 }
 
 
-.capsule-card button {
-    padding: 7px 9px;
-    margin-right: 5px;
-    font-size: 11px;
+.search-box {
+    width: 100%;
+
+    padding: 10px;
+
+    margin-bottom: 10px;
+
+    border: 1px solid #272736;
+
+    border-radius: 8px;
+
+    outline: none;
+
+    background: #12121b;
+
+    color: white;
+
+    font-size: 12px;
 }
 
 
-.capsule-card button:first-of-type {
-    background: #303044;
+.search-box:focus {
+    border-color: #6c4cff;
 }
 
 
-.capsule-card button:nth-of-type(2) {
+.capsule-card {
+    padding: 12px;
+
+    margin-bottom: 9px;
+
+    border: 1px solid #252532;
+
+    border-radius: 11px;
+
+    background: #14141d;
+}
+
+
+.capsule-card:hover {
+    border-color: #38384d;
+}
+
+
+.capsule-card h3 {
+    margin: 0 0 6px;
+
+    font-size: 13px;
+
+    line-height: 1.4;
+
+    word-break: break-word;
+}
+
+
+.capsule-meta {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 6px;
+
+    margin-bottom: 10px;
+}
+
+
+.meta-item {
+    padding: 3px 6px;
+
+    border-radius: 5px;
+
+    background: #1d1d29;
+
+    color: #858595;
+
+    font-size: 9px;
+}
+
+
+.capsule-actions {
+    display: flex;
+
+    gap: 5px;
+}
+
+
+.capsule-actions button {
+    flex: 1;
+
+    padding: 7px 5px;
+
+    font-size: 10px;
+}
+
+
+.view-capsule {
+    background: #252536;
+}
+
+
+.continue-capsule {
     background: #6c4cff;
 }
 
 
-.capsule-card button:last-of-type {
-    background: #45252b;
+.delete-capsule {
+    background: #392127;
 }
 
 
-.capsule-card button:last-of-type:hover {
-    background: #633039;
+.delete-capsule:hover {
+    background: #512c34;
+}
+
+
+/* =========================
+   OUTPUT
+========================= */
+
+.capsule-output {
+    display: none;
+
+    max-height: 230px;
+
+    overflow: auto;
+
+    margin-top: 12px;
+
+    padding: 11px;
+
+    border-radius: 9px;
+
+    background: #07070b;
+
+    color: #bdbdca;
+
+    font-size: 10px;
+
+    line-height: 1.5;
+
+    white-space: pre-wrap;
+
+    word-break: break-word;
+}
+
+
+.capsule-output.visible {
+    display: block;
+}
+
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.empty-library {
+    padding: 22px 10px;
+
+    text-align: center;
+
+    color: #666677;
+
+    font-size: 11px;
+}
+
+
+/* =========================
+   FOOTER
+========================= */
+
+footer {
+    display: flex;
+
+    justify-content: space-between;
+
+    margin-top: 18px;
+
+    padding-top: 10px;
+
+    border-top: 1px solid #1d1d28;
+
+    color: #565665;
+
+    font-size: 9px;
 }

@@ -1,56 +1,216 @@
-const capsuleButton = document.getElementById("capsuleButton");
-const viewButton = document.getElementById("viewButton");
-const exportButton = document.getElementById("exportButton");
-const importButton = document.getElementById("importButton");
-const importFile = document.getElementById("importFile");
-const continueButton = document.getElementById("continueButton");
-const libraryButton = document.getElementById("libraryButton");
+const capsuleButton =
+    document.getElementById("capsuleButton");
 
-const capsuleOutput = document.getElementById("capsuleOutput");
-const status = document.getElementById("status");
-const library = document.getElementById("library");
+const viewButton =
+    document.getElementById("viewButton");
+
+const exportButton =
+    document.getElementById("exportButton");
+
+const importButton =
+    document.getElementById("importButton");
+
+const importFile =
+    document.getElementById("importFile");
+
+const continueButton =
+    document.getElementById("continueButton");
+
+const libraryButton =
+    document.getElementById("libraryButton");
+
+const capsuleOutput =
+    document.getElementById("capsuleOutput");
+
+const status =
+    document.getElementById("status");
+
+const library =
+    document.getElementById("library");
+
+
+let currentLibrary = [];
 
 
 // ========================================
-// LIBRARY HELPERS
+// UTILITY FUNCTIONS
+// ========================================
+
+function generateCapsuleId() {
+
+    return crypto.randomUUID();
+
+}
+
+
+function ensureCapsuleId(capsule) {
+
+    if (!capsule.capsuleId) {
+
+        capsule.capsuleId =
+            generateCapsuleId();
+
+    }
+
+    return capsule;
+
+}
+
+
+function formatDate(date) {
+
+    if (!date) {
+
+        return "Unknown date";
+
+    }
+
+    try {
+
+        return new Date(date).toLocaleString();
+
+    } catch {
+
+        return "Unknown date";
+
+    }
+
+}
+
+
+function showOutput(data) {
+
+    capsuleOutput.textContent =
+        typeof data === "string"
+            ? data
+            : JSON.stringify(
+                data,
+                null,
+                2
+            );
+
+    capsuleOutput.classList.add(
+        "visible"
+    );
+
+}
+
+
+// ========================================
+// LIBRARY
 // ========================================
 
 async function getLibrary() {
-    const result = await chrome.storage.local.get(
-        "capsuleLibrary"
+
+    const result =
+        await chrome.storage.local.get(
+            "capsuleLibrary"
+        );
+
+
+    const capsules =
+        Array.isArray(
+            result.capsuleLibrary
+        )
+            ? result.capsuleLibrary
+            : [];
+
+
+    return capsules.map(
+        ensureCapsuleId
     );
 
-    return result.capsuleLibrary || [];
 }
 
 
-async function saveToLibrary(capsule) {
+async function saveLibrary(
+    capsules
+) {
 
-    const capsules = await getLibrary();
+    await chrome.storage.local.set({
 
-    const existingIndex = capsules.findIndex(
-        item =>
-            item.sourceUrl === capsule.sourceUrl &&
-            item.createdAt === capsule.createdAt
-    );
+        capsuleLibrary:
+            capsules
 
-    if (existingIndex === -1) {
-        capsules.unshift(capsule);
+    });
+
+}
+
+
+async function saveToLibrary(
+    capsule
+) {
+
+    capsule =
+        ensureCapsuleId(
+            capsule
+        );
+
+
+    const capsules =
+        await getLibrary();
+
+
+    const existingIndex =
+        capsules.findIndex(
+            item =>
+                item.capsuleId ===
+                capsule.capsuleId
+        );
+
+
+    if (
+        existingIndex !== -1
+    ) {
+
+        capsules[
+            existingIndex
+        ] = capsule;
+
+    } else {
+
+        capsules.unshift(
+            capsule
+        );
+
     }
 
-    await chrome.storage.local.set({
-        capsuleLibrary: capsules
-    });
+
+    await saveLibrary(
+        capsules
+    );
+
+
+    return capsule;
+
 }
 
 
-async function saveCurrentCapsule(capsule) {
+async function saveCurrentCapsule(
+    capsule
+) {
+
+    capsule =
+        ensureCapsuleId(
+            capsule
+        );
+
 
     await chrome.storage.local.set({
-        latestCapsule: capsule
+
+        latestCapsule:
+            capsule
+
     });
 
-    await saveToLibrary(capsule);
+
+    await saveToLibrary(
+        capsule
+    );
+
+
+    return capsule;
+
 }
 
 
@@ -58,165 +218,244 @@ async function saveCurrentCapsule(capsule) {
 // CREATE CAPSULE
 // ========================================
 
-capsuleButton.addEventListener("click", async () => {
+capsuleButton.addEventListener(
+    "click",
+    async () => {
 
-    capsuleButton.textContent = "Capturing...";
-    status.textContent = "";
+        capsuleButton.textContent =
+            "Capturing...";
 
-    try {
+        status.textContent =
+            "";
 
-        const [tab] = await chrome.tabs.query({
-            active: true,
-            currentWindow: true
-        });
+        try {
 
-        if (!tab || !tab.id) {
-            throw new Error("No active tab found");
-        }
+            const [tab] =
+                await chrome.tabs.query({
 
-        const results =
-            await chrome.scripting.executeScript({
+                    active: true,
 
-                target: {
-                    tabId: tab.id
-                },
+                    currentWindow: true
 
-                func: () => {
+                });
 
-                    const messageElements =
-                        document.querySelectorAll(
-                            '[data-message-author-role]'
+
+            if (
+                !tab ||
+                !tab.id
+            ) {
+
+                throw new Error(
+                    "No active tab found."
+                );
+
+            }
+
+
+            const results =
+                await chrome.scripting.executeScript({
+
+                    target: {
+
+                        tabId:
+                            tab.id
+
+                    },
+
+
+                    func: () => {
+
+                        const elements =
+                            document.querySelectorAll(
+                                "[data-message-author-role]"
+                            );
+
+
+                        const messages = [];
+
+
+                        elements.forEach(
+                            element => {
+
+                                const role =
+                                    element.getAttribute(
+                                        "data-message-author-role"
+                                    );
+
+
+                                const content =
+                                    element.innerText
+                                        .trim();
+
+
+                                if (
+                                    !content
+                                ) {
+
+                                    return;
+
+                                }
+
+
+                                messages.push({
+
+                                    role:
+                                        role,
+
+                                    content:
+                                        content
+
+                                });
+
+                            }
                         );
 
-                    const messages = [];
 
-                    messageElements.forEach(
-                        (element) => {
+                        return {
 
-                            const role =
-                                element.getAttribute(
-                                    "data-message-author-role"
-                                );
+                            title:
+                                document.title,
 
-                            const content =
-                                element.innerText.trim();
+                            url:
+                                window.location.href,
 
-                            if (!content) {
-                                return;
-                            }
+                            messages:
+                                messages,
 
-                            messages.push({
-                                role: role,
-                                content: content
-                            });
+                            pageText:
+                                document.body.innerText
 
-                        }
-                    );
+                        };
 
-                    return {
-                        title: document.title,
-                        url: window.location.href,
-                        messages: messages,
-                        pageText: document.body.innerText
-                    };
-                }
-            });
+                    }
+
+                });
 
 
-        const captured =
-            results[0].result;
+            const captured =
+                results[0].result;
 
 
-        if (!captured) {
-            throw new Error(
-                "Nothing was captured"
-            );
-        }
+            if (!captured) {
+
+                throw new Error(
+                    "Nothing was captured."
+                );
+
+            }
 
 
-        let messages =
-            captured.messages;
+            let messages =
+                captured.messages;
 
 
-        if (
-            !messages ||
-            messages.length === 0
-        ) {
+            if (
+                !messages ||
+                messages.length === 0
+            ) {
 
-            messages = [
-                {
-                    role: "unknown",
-                    content:
-                        captured.pageText || ""
-                }
-            ];
+                messages = [
 
-        }
+                    {
 
+                        role:
+                            "unknown",
 
-        const capsule = {
+                        content:
+                            captured.pageText ||
+                            ""
 
-            capsuleVersion: "1.0",
+                    }
 
-            app: "ChatGPT",
+                ];
 
-            title:
-                captured.title ||
-                "Untitled Conversation",
-
-            createdAt:
-                new Date().toISOString(),
-
-            sourceUrl:
-                captured.url,
-
-            messageCount:
-                messages.length,
-
-            messages:
-                messages
-        };
+            }
 
 
-        await saveCurrentCapsule(
-            capsule
-        );
+            const capsule = {
+
+                capsuleId:
+                    generateCapsuleId(),
+
+                capsuleVersion:
+                    "1.1",
+
+                app:
+                    "ChatGPT",
+
+                title:
+                    captured.title ||
+                    "Untitled Conversation",
+
+                createdAt:
+                    new Date()
+                        .toISOString(),
+
+                sourceUrl:
+                    captured.url,
+
+                messageCount:
+                    messages.length,
+
+                messages:
+                    messages
+
+            };
 
 
-        capsuleOutput.textContent =
-            JSON.stringify(
-                capsule,
-                null,
-                2
+            await saveCurrentCapsule(
+                capsule
             );
 
 
-        status.textContent =
-            `Captured ${messages.length} messages and saved to library.`;
+            showOutput(
+                capsule
+            );
 
 
-        capsuleButton.textContent =
-            "Capsule Saved ✓";
+            status.textContent =
+                `Captured ${messages.length} messages and saved to library.`;
 
 
-    } catch (error) {
+            capsuleButton.textContent =
+                "Capsule Saved ✓";
 
-        console.error(
-            "Capture error:",
-            error
-        );
 
-        capsuleButton.textContent =
-            "Capture failed";
+            await renderLibrary();
 
-        status.textContent =
-            "Capture failed";
 
-        capsuleOutput.textContent =
-            error.message;
+            setTimeout(() => {
+
+                capsuleButton.textContent =
+                    "✨ Create Capsule";
+
+            }, 2000);
+
+
+        } catch (error) {
+
+            console.error(
+                "Capture error:",
+                error
+            );
+
+
+            capsuleButton.textContent =
+                "Capture failed";
+
+
+            status.textContent =
+                "Capture failed";
+
+
+            showOutput(
+                error.message
+            );
+
+        }
+
     }
-
-});
+);
 
 
 // ========================================
@@ -233,39 +472,46 @@ viewButton.addEventListener(
             );
 
 
-        if (!result.latestCapsule) {
+        if (
+            !result.latestCapsule
+        ) {
 
             status.textContent =
                 "No saved capsule found.";
 
-            capsuleOutput.textContent =
-                "";
-
             return;
+
         }
 
 
         const capsule =
-            result.latestCapsule;
-
-
-        capsuleOutput.textContent =
-            JSON.stringify(
-                capsule,
-                null,
-                2
+            ensureCapsuleId(
+                result.latestCapsule
             );
 
 
+        await chrome.storage.local.set({
+
+            latestCapsule:
+                capsule
+
+        });
+
+
+        showOutput(
+            capsule
+        );
+
+
         status.textContent =
-            `Capsule contains ${capsule.messageCount} messages.`;
+            `Capsule contains ${capsule.messageCount || capsule.messages.length} messages.`;
 
     }
 );
 
 
 // ========================================
-// EXPORT CAPSULE
+// EXPORT
 // ========================================
 
 exportButton.addEventListener(
@@ -278,18 +524,27 @@ exportButton.addEventListener(
             );
 
 
-        if (!result.latestCapsule) {
+        if (
+            !result.latestCapsule
+        ) {
 
             status.textContent =
                 "No saved capsule to export.";
 
             return;
+
         }
+
+
+        const capsule =
+            ensureCapsuleId(
+                result.latestCapsule
+            );
 
 
         const capsuleData =
             JSON.stringify(
-                result.latestCapsule,
+                capsule,
                 null,
                 2
             );
@@ -297,7 +552,9 @@ exportButton.addEventListener(
 
         const blob =
             new Blob(
-                [capsuleData],
+                [
+                    capsuleData
+                ],
                 {
                     type:
                         "application/json"
@@ -322,7 +579,7 @@ exportButton.addEventListener(
 
 
         link.download =
-            "llm-capsule.json";
+            `${capsule.capsuleId}.llmcapsule`;
 
 
         link.click();
@@ -344,7 +601,7 @@ exportButton.addEventListener(
         setTimeout(() => {
 
             exportButton.textContent =
-                "Export Capsule";
+                "Export";
 
         }, 2000);
 
@@ -353,7 +610,7 @@ exportButton.addEventListener(
 
 
 // ========================================
-// IMPORT CAPSULE
+// IMPORT
 // ========================================
 
 importButton.addEventListener(
@@ -375,7 +632,9 @@ importFile.addEventListener(
 
 
         if (!file) {
+
             return;
+
         }
 
 
@@ -393,7 +652,8 @@ importFile.addEventListener(
 
             if (
                 !capsule ||
-                typeof capsule !== "object"
+                typeof capsule !==
+                    "object"
             ) {
 
                 throw new Error(
@@ -416,17 +676,33 @@ importFile.addEventListener(
             }
 
 
+            ensureCapsuleId(
+                capsule
+            );
+
+
+            capsule.messageCount =
+                capsule.messages.length;
+
+
+            if (
+                !capsule.capsuleVersion
+            ) {
+
+                capsule.capsuleVersion =
+                    "1.1";
+
+            }
+
+
             await saveCurrentCapsule(
                 capsule
             );
 
 
-            capsuleOutput.textContent =
-                JSON.stringify(
-                    capsule,
-                    null,
-                    2
-                );
+            showOutput(
+                capsule
+            );
 
 
             status.textContent =
@@ -437,10 +713,13 @@ importFile.addEventListener(
                 "Imported ✓";
 
 
+            await renderLibrary();
+
+
             setTimeout(() => {
 
                 importButton.textContent =
-                    "Import Capsule";
+                    "Import";
 
             }, 2000);
 
@@ -457,8 +736,9 @@ importFile.addEventListener(
                 "Import failed";
 
 
-            capsuleOutput.textContent =
-                error.message;
+            showOutput(
+                error.message
+            );
 
         }
 
@@ -474,6 +754,120 @@ importFile.addEventListener(
 // CONTINUE CONVERSATION
 // ========================================
 
+async function continueCapsule(
+    capsule
+) {
+
+    if (
+        !capsule ||
+        !Array.isArray(
+            capsule.messages
+        ) ||
+        capsule.messages.length === 0
+    ) {
+
+        status.textContent =
+            "Capsule contains no messages.";
+
+        return;
+
+    }
+
+
+    let prompt =
+
+        `I am continuing a conversation that was previously held with ${capsule.app || "another AI assistant"}.
+
+The original conversation is provided below.
+
+Treat it as existing conversation context rather than starting from scratch.
+
+Conversation title:
+${capsule.title || "Untitled Conversation"}
+
+Conversation:
+`;
+
+
+    capsule.messages.forEach(
+        (message, index) => {
+
+            let role =
+                String(
+                    message.role ||
+                    "unknown"
+                ).toUpperCase();
+
+
+            if (
+                role === "USER"
+            ) {
+
+                role = "USER";
+
+            } else if (
+                role === "ASSISTANT"
+            ) {
+
+                role = "ASSISTANT";
+
+            }
+
+
+            prompt +=
+                `\n--- ${role} MESSAGE ${index + 1} ---\n`;
+
+
+            prompt +=
+                `${message.content || ""}\n`;
+
+        }
+    );
+
+
+    prompt += `
+
+--- END OF CONVERSATION ---
+
+Continue naturally from the conversation above.
+
+Preserve important context, decisions, requirements, code, project state, and unresolved tasks.
+
+Do not restart the project.
+
+Do not unnecessarily repeat information already established.
+
+Continue from where the previous conversation ended.`;
+
+
+    await navigator.clipboard.writeText(
+        prompt
+    );
+
+
+    showOutput(
+        prompt
+    );
+
+
+    status.textContent =
+        "Continuation prompt copied ✓";
+
+
+    continueButton.textContent =
+        "Copied ✓";
+
+
+    setTimeout(() => {
+
+        continueButton.textContent =
+            "Continue";
+
+    }, 2000);
+
+}
+
+
 continueButton.addEventListener(
     "click",
     async () => {
@@ -486,7 +880,9 @@ continueButton.addEventListener(
                 );
 
 
-            if (!result.latestCapsule) {
+            if (
+                !result.latestCapsule
+            ) {
 
                 status.textContent =
                     "No capsule available.";
@@ -497,96 +893,14 @@ continueButton.addEventListener(
 
 
             const capsule =
-                result.latestCapsule;
+                ensureCapsuleId(
+                    result.latestCapsule
+                );
 
 
-            if (
-                !Array.isArray(
-                    capsule.messages
-                ) ||
-                capsule.messages.length === 0
-            ) {
-
-                status.textContent =
-                    "Capsule contains no messages.";
-
-                return;
-
-            }
-
-
-            let prompt =
-                `I am continuing a conversation that was previously held with ${capsule.app}.
-
-The original conversation is provided below.
-
-Please treat it as existing conversation context rather than starting from scratch.
-
-Conversation title:
-${capsule.title}
-
-Conversation:
-`;
-
-
-            capsule.messages.forEach(
-                (message, index) => {
-
-                    const role =
-                        message.role === "user"
-                            ? "USER"
-                            : message.role === "assistant"
-                                ? "ASSISTANT"
-                                : message.role.toUpperCase();
-
-
-                    prompt +=
-                        `\n--- ${role} MESSAGE ${index + 1} ---\n`;
-
-
-                    prompt +=
-                        `${message.content}\n`;
-
-                }
+            await continueCapsule(
+                capsule
             );
-
-
-            prompt += `
-
---- END OF CONVERSATION ---
-
-Continue from the conversation above.
-
-Preserve the important context, decisions, requirements, code, and unresolved tasks.
-
-Do not restart the project or repeat information unnecessarily.
-
-Continue naturally from where the previous conversation ended.`;
-
-
-            await navigator.clipboard.writeText(
-                prompt
-            );
-
-
-            capsuleOutput.textContent =
-                prompt;
-
-
-            status.textContent =
-                "Continuation prompt copied ✓";
-
-
-            continueButton.textContent =
-                "Copied ✓";
-
-
-            setTimeout(() => {
-
-                continueButton.textContent =
-                    "Continue Conversation";
-
-            }, 2000);
 
 
         } catch (error) {
@@ -601,8 +915,9 @@ Continue naturally from where the previous conversation ended.`;
                 "Could not create continuation prompt.";
 
 
-            capsuleOutput.textContent =
-                error.message;
+            showOutput(
+                error.message
+            );
 
         }
 
@@ -611,7 +926,7 @@ Continue naturally from where the previous conversation ended.`;
 
 
 // ========================================
-// CAPSULE LIBRARY
+// LIBRARY BUTTON
 // ========================================
 
 libraryButton.addEventListener(
@@ -624,191 +939,497 @@ libraryButton.addEventListener(
 );
 
 
+// ========================================
+// LIBRARY RENDERING
+// ========================================
+
 async function renderLibrary() {
 
     const capsules =
         await getLibrary();
 
 
-    if (capsules.length === 0) {
-
-        library.innerHTML =
-            "<p>No capsules saved yet.</p>";
-
-        status.textContent =
-            "Capsule library is empty.";
-
-        return;
-
-    }
+    currentLibrary =
+        capsules;
 
 
     library.innerHTML =
         "";
 
 
-    capsules.forEach(
-        (capsule, index) => {
+    const header =
+        document.createElement(
+            "div"
+        );
 
-            const card =
+
+    header.className =
+        "library-header";
+
+
+    const title =
+        document.createElement(
+            "h2"
+        );
+
+
+    title.className =
+        "library-title";
+
+
+    title.textContent =
+        "My Capsules";
+
+
+    const count =
+        document.createElement(
+            "span"
+        );
+
+
+    count.className =
+        "library-count";
+
+
+    count.textContent =
+        `${capsules.length} capsule${capsules.length === 1 ? "" : "s"}`;
+
+
+    header.appendChild(
+        title
+    );
+
+
+    header.appendChild(
+        count
+    );
+
+
+    library.appendChild(
+        header
+    );
+
+
+    if (
+        capsules.length === 0
+    ) {
+
+        const empty =
+            document.createElement(
+                "div"
+            );
+
+
+        empty.className =
+            "empty-library";
+
+
+        empty.textContent =
+            "No capsules saved yet.";
+
+
+        library.appendChild(
+            empty
+        );
+
+
+        return;
+
+    }
+
+
+    const search =
+        document.createElement(
+            "input"
+        );
+
+
+    search.className =
+        "search-box";
+
+
+    search.placeholder =
+        "Search capsules...";
+
+
+    library.appendChild(
+        search
+    );
+
+
+    const list =
+        document.createElement(
+            "div"
+        );
+
+
+    list.id =
+        "capsuleList";
+
+
+    library.appendChild(
+        list
+    );
+
+
+    function renderList(
+        filtered
+    ) {
+
+        list.innerHTML =
+            "";
+
+
+        if (
+            filtered.length === 0
+        ) {
+
+            const empty =
                 document.createElement(
                     "div"
                 );
 
 
-            card.className =
-                "capsule-card";
+            empty.className =
+                "empty-library";
 
 
-            const title =
-                document.createElement(
-                    "h3"
-                );
+            empty.textContent =
+                "No matching capsules.";
 
 
-            title.textContent =
-                capsule.title ||
-                "Untitled Capsule";
-
-
-            const info =
-                document.createElement(
-                    "p"
-                );
-
-
-            info.textContent =
-                `${capsule.app || "Unknown"} • ${capsule.messageCount || capsule.messages.length} messages`;
-
-
-            const view =
-                document.createElement(
-                    "button"
-                );
-
-
-            view.textContent =
-                "View";
-
-
-            view.addEventListener(
-                "click",
-                async () => {
-
-                    await chrome.storage.local.set({
-                        latestCapsule:
-                            capsule
-                    });
-
-
-                    capsuleOutput.textContent =
-                        JSON.stringify(
-                            capsule,
-                            null,
-                            2
-                        );
-
-
-                    status.textContent =
-                        "Capsule loaded ✓";
-
-                }
+            list.appendChild(
+                empty
             );
 
 
-            const continueBtn =
-                document.createElement(
-                    "button"
-                );
+            return;
+
+        }
 
 
-            continueBtn.textContent =
-                "Continue";
+        filtered.forEach(
+            capsule => {
 
-
-            continueBtn.addEventListener(
-                "click",
-                async () => {
-
-                    await chrome.storage.local.set({
-                        latestCapsule:
-                            capsule
-                    });
-
-
-                    continueButton.click();
-
-                }
-            );
-
-
-            const deleteBtn =
-                document.createElement(
-                    "button"
-                );
-
-
-            deleteBtn.textContent =
-                "Delete";
-
-
-            deleteBtn.addEventListener(
-                "click",
-                async () => {
-
-                    const updated =
-                        await getLibrary();
-
-
-                    updated.splice(
-                        index,
-                        1
+                const card =
+                    document.createElement(
+                        "div"
                     );
 
 
-                    await chrome.storage.local.set({
-                        capsuleLibrary:
+                card.className =
+                    "capsule-card";
+
+
+                const cardTitle =
+                    document.createElement(
+                        "h3"
+                    );
+
+
+                cardTitle.textContent =
+                    capsule.title ||
+                    "Untitled Capsule";
+
+
+                const meta =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                meta.className =
+                    "capsule-meta";
+
+
+                const app =
+                    document.createElement(
+                        "span"
+                    );
+
+
+                app.className =
+                    "meta-item";
+
+
+                app.textContent =
+                    capsule.app ||
+                    "Unknown";
+
+
+                const messages =
+                    document.createElement(
+                        "span"
+                    );
+
+
+                messages.className =
+                    "meta-item";
+
+
+                messages.textContent =
+                    `${capsule.messages.length} messages`;
+
+
+                const date =
+                    document.createElement(
+                        "span"
+                    );
+
+
+                date.className =
+                    "meta-item";
+
+
+                date.textContent =
+                    formatDate(
+                        capsule.createdAt
+                    );
+
+
+                meta.appendChild(
+                    app
+                );
+
+
+                meta.appendChild(
+                    messages
+                );
+
+
+                meta.appendChild(
+                    date
+                );
+
+
+                const actions =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                actions.className =
+                    "capsule-actions";
+
+
+                const view =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                view.className =
+                    "view-capsule";
+
+
+                view.textContent =
+                    "View";
+
+
+                view.addEventListener(
+                    "click",
+                    async () => {
+
+                        await chrome.storage.local.set({
+
+                            latestCapsule:
+                                capsule
+
+                        });
+
+
+                        showOutput(
+                            capsule
+                        );
+
+
+                        status.textContent =
+                            "Capsule loaded ✓";
+
+                    }
+                );
+
+
+                const continueBtn =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                continueBtn.className =
+                    "continue-capsule";
+
+
+                continueBtn.textContent =
+                    "Continue";
+
+
+                continueBtn.addEventListener(
+                    "click",
+                    async () => {
+
+                        await chrome.storage.local.set({
+
+                            latestCapsule:
+                                capsule
+
+                        });
+
+
+                        await continueCapsule(
+                            capsule
+                        );
+
+                    }
+                );
+
+
+                const deleteBtn =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                deleteBtn.className =
+                    "delete-capsule";
+
+
+                deleteBtn.textContent =
+                    "Delete";
+
+
+                deleteBtn.addEventListener(
+                    "click",
+                    async () => {
+
+                        const confirmed =
+                            confirm(
+                                "Delete this capsule?"
+                            );
+
+
+                        if (
+                            !confirmed
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const updated =
+                            (
+                                await getLibrary()
+                            ).filter(
+                                item =>
+                                    item.capsuleId !==
+                                    capsule.capsuleId
+                            );
+
+
+                        await saveLibrary(
                             updated
-                    });
+                        );
 
 
-                    await renderLibrary();
+                        await renderLibrary();
 
 
-                    status.textContent =
-                        "Capsule deleted.";
+                        status.textContent =
+                            "Capsule deleted.";
 
-                }
-            );
-
-
-            card.appendChild(
-                title
-            );
+                    }
+                );
 
 
-            card.appendChild(
-                info
-            );
+                actions.appendChild(
+                    view
+                );
 
 
-            card.appendChild(
-                view
-            );
+                actions.appendChild(
+                    continueBtn
+                );
 
 
-            card.appendChild(
-                continueBtn
-            );
+                actions.appendChild(
+                    deleteBtn
+                );
 
 
-            card.appendChild(
-                deleteBtn
-            );
+                card.appendChild(
+                    cardTitle
+                );
 
 
-            library.appendChild(
-                card
+                card.appendChild(
+                    meta
+                );
+
+
+                card.appendChild(
+                    actions
+                );
+
+
+                list.appendChild(
+                    card
+                );
+
+            }
+        );
+
+    }
+
+
+    renderList(
+        capsules
+    );
+
+
+    search.addEventListener(
+        "input",
+        () => {
+
+            const query =
+                search.value
+                    .toLowerCase()
+                    .trim();
+
+
+            const filtered =
+                capsules.filter(
+                    capsule => {
+
+                        const title =
+                            (
+                                capsule.title ||
+                                ""
+                            ).toLowerCase();
+
+
+                        const app =
+                            (
+                                capsule.app ||
+                                ""
+                            ).toLowerCase();
+
+
+                        return (
+                            title.includes(
+                                query
+                            ) ||
+                            app.includes(
+                                query
+                            )
+                        );
+
+                    }
+                );
+
+
+            renderList(
+                filtered
             );
 
         }

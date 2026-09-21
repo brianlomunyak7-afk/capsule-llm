@@ -5,6 +5,8 @@ const exportButton = document.getElementById("exportButton");
 const importButton = document.getElementById("importButton");
 const importFile = document.getElementById("importFile");
 
+const continueButton = document.getElementById("continueButton");
+
 const capsuleOutput = document.getElementById("capsuleOutput");
 const status = document.getElementById("status");
 
@@ -29,8 +31,6 @@ capsuleButton.addEventListener("click", async () => {
             throw new Error("No active tab found");
         }
 
-
-        // Capture the current page
         const results = await chrome.scripting.executeScript({
 
             target: {
@@ -46,7 +46,6 @@ capsuleButton.addEventListener("click", async () => {
 
                 const messages = [];
 
-
                 messageElements.forEach((element) => {
 
                     const role =
@@ -57,11 +56,9 @@ capsuleButton.addEventListener("click", async () => {
                     const content =
                         element.innerText.trim();
 
-
                     if (!content) {
                         return;
                     }
-
 
                     messages.push({
                         role: role,
@@ -70,36 +67,23 @@ capsuleButton.addEventListener("click", async () => {
 
                 });
 
-
                 return {
-
                     title: document.title,
-
                     url: window.location.href,
-
                     messages: messages,
-
                     pageText: document.body.innerText
-
                 };
-
             }
-
         });
 
-
         const captured = results[0].result;
-
 
         if (!captured) {
             throw new Error("Nothing was captured");
         }
 
-
         let messages = captured.messages;
 
-
-        // Fallback
         if (!messages || messages.length === 0) {
 
             messages = [
@@ -110,11 +94,6 @@ capsuleButton.addEventListener("click", async () => {
             ];
 
         }
-
-
-        // ========================================
-        // BUILD CAPSULE
-        // ========================================
 
         const capsule = {
 
@@ -137,20 +116,12 @@ capsuleButton.addEventListener("click", async () => {
 
             messages:
                 messages
-
         };
 
-
-        // Save capsule
         await chrome.storage.local.set({
-
-            latestCapsule:
-                capsule
-
+            latestCapsule: capsule
         });
 
-
-        // Display capsule
         capsuleOutput.textContent =
             JSON.stringify(
                 capsule,
@@ -158,13 +129,11 @@ capsuleButton.addEventListener("click", async () => {
                 2
             );
 
-
         status.textContent =
             `Captured ${messages.length} messages.`;
 
         capsuleButton.textContent =
             "Capsule Saved ✓";
-
 
     } catch (error) {
 
@@ -173,18 +142,14 @@ capsuleButton.addEventListener("click", async () => {
             error
         );
 
-
         capsuleButton.textContent =
             "Capture failed";
-
 
         status.textContent =
             "Capture failed";
 
-
         capsuleOutput.textContent =
             error.message;
-
     }
 
 });
@@ -203,7 +168,6 @@ viewButton.addEventListener(
                 "latestCapsule"
             );
 
-
         if (!result.latestCapsule) {
 
             status.textContent =
@@ -212,9 +176,7 @@ viewButton.addEventListener(
             capsuleOutput.textContent = "";
 
             return;
-
         }
-
 
         capsuleOutput.textContent =
             JSON.stringify(
@@ -222,7 +184,6 @@ viewButton.addEventListener(
                 null,
                 2
             );
-
 
         status.textContent =
             `Capsule contains ${result.latestCapsule.messageCount} messages.`;
@@ -244,16 +205,13 @@ exportButton.addEventListener(
                 "latestCapsule"
             );
 
-
         if (!result.latestCapsule) {
 
             status.textContent =
                 "No saved capsule to export.";
 
             return;
-
         }
-
 
         const capsuleData =
             JSON.stringify(
@@ -261,7 +219,6 @@ exportButton.addEventListener(
                 null,
                 2
             );
-
 
         const blob =
             new Blob(
@@ -271,40 +228,31 @@ exportButton.addEventListener(
                 }
             );
 
-
         const url =
             URL.createObjectURL(
                 blob
             );
 
-
         const link =
             document.createElement("a");
-
 
         link.href =
             url;
 
-
         link.download =
             "llm-capsule.json";
 
-
         link.click();
-
 
         URL.revokeObjectURL(
             url
         );
 
-
         status.textContent =
             "Capsule exported ✓";
 
-
         exportButton.textContent =
             "Exported ✓";
-
 
         setTimeout(() => {
 
@@ -342,27 +290,18 @@ importFile.addEventListener(
         const file =
             importFile.files[0];
 
-
         if (!file) {
             return;
         }
 
-
         try {
 
-            // Read JSON file
             const text =
                 await file.text();
 
-
-            // Convert JSON into JavaScript object
             const capsule =
                 JSON.parse(text);
 
-
-            // ========================================
-            // VALIDATE CAPSULE
-            // ========================================
 
             if (
                 !capsule ||
@@ -374,7 +313,6 @@ importFile.addEventListener(
                 );
 
             }
-
 
             if (
                 !Array.isArray(
@@ -388,22 +326,12 @@ importFile.addEventListener(
 
             }
 
-
-            // ========================================
-            // SAVE IMPORTED CAPSULE
-            // ========================================
-
             await chrome.storage.local.set({
 
                 latestCapsule:
                     capsule
 
             });
-
-
-            // ========================================
-            // SHOW IMPORTED CAPSULE
-            // ========================================
 
             capsuleOutput.textContent =
                 JSON.stringify(
@@ -412,14 +340,11 @@ importFile.addEventListener(
                     2
                 );
 
-
             status.textContent =
                 `Imported ${capsule.messages.length} messages ✓`;
 
-
             importButton.textContent =
                 "Imported ✓";
-
 
             setTimeout(() => {
 
@@ -428,6 +353,169 @@ importFile.addEventListener(
 
             }, 2000);
 
+        } catch (error) {
+
+            console.error(
+                "Import error:",
+                error
+            );
+
+            status.textContent =
+                "Import failed";
+
+            capsuleOutput.textContent =
+                error.message;
+
+        }
+
+        importFile.value = "";
+
+    }
+);
+
+
+// ========================================
+// CONTINUE CONVERSATION
+// ========================================
+
+continueButton.addEventListener(
+    "click",
+    async () => {
+
+        try {
+
+            const result =
+                await chrome.storage.local.get(
+                    "latestCapsule"
+                );
+
+
+            if (!result.latestCapsule) {
+
+                status.textContent =
+                    "No capsule available.";
+
+                return;
+
+            }
+
+
+            const capsule =
+                result.latestCapsule;
+
+
+            if (
+                !Array.isArray(
+                    capsule.messages
+                ) ||
+                capsule.messages.length === 0
+            ) {
+
+                status.textContent =
+                    "Capsule contains no messages.";
+
+                return;
+
+            }
+
+
+            // ========================================
+            // BUILD CONTINUATION PROMPT
+            // ========================================
+
+            let prompt =
+                `I am continuing a conversation that was previously held with ${capsule.app}.
+
+The original conversation is provided below.
+
+Please treat it as existing conversation context rather than starting from scratch.
+
+Conversation title:
+${capsule.title}
+
+Conversation:
+
+`;
+
+
+            capsule.messages.forEach(
+                (message, index) => {
+
+                    const role =
+                        message.role === "user"
+                            ? "USER"
+                            : message.role === "assistant"
+                                ? "ASSISTANT"
+                                : message.role.toUpperCase();
+
+                    prompt +=
+                        `\n--- ${role} MESSAGE ${index + 1} ---\n`;
+
+                    prompt +=
+                        `${message.content}\n`;
+
+                }
+            );
+
+
+            prompt += `
+
+--- END OF CONVERSATION ---
+
+Continue from the conversation above.
+
+Preserve the important context, decisions, requirements, code, and unresolved tasks.
+
+Do not restart the project or repeat information unnecessarily.
+
+Continue naturally from where the previous conversation ended.`;
+
+
+            // ========================================
+            // COPY TO CLIPBOARD
+            // ========================================
+
+            await navigator.clipboard.writeText(
+                prompt
+            );
+
+
+            // ========================================
+            // DISPLAY RESULT
+            // ========================================
+
+            capsuleOutput.textContent =
+                prompt;
+
+            status.textContent =
+                "Continuation prompt copied ✓";
+
+            continueButton.textContent =
+                "Copied ✓";
+
+
+            setTimeout(() => {
+
+                continueButton.textContent =
+                    "Continue Conversation";
+
+            }, 2000);
+
 
         } catch (error) {
-f
+
+            console.error(
+                "Continuation error:",
+                error
+            );
+
+            status.textContent =
+                "Could not create continuation prompt.";
+
+            capsuleOutput.textContent =
+                error.message;
+
+        }
+
+    }
+);

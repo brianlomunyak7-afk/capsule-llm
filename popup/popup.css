@@ -1,21 +1,9 @@
-* {
-    box-sizing: border-box;
-}
-
 body {
     margin: 0;
-
-    width: 380px;
-
-    min-height: 500px;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-    background: #111318;
-
+    padding: 0;
+    width: 360px;
+    font-family: Arial, sans-serif;
+    background: #0f0f14;
     color: #ffffff;
 }
 
@@ -25,87 +13,122 @@ body {
 
 h1 {
     margin: 0;
-
     font-size: 22px;
 }
 
 .tagline {
     margin-top: 6px;
-
-    margin-bottom: 20px;
-
-    color: #a9abb3;
-
-    font-size: 14px;
+    color: #999;
+    font-size: 13px;
 }
 
 .buttons {
     display: flex;
-
     flex-direction: column;
-
-    gap: 10px;
+    gap: 8px;
+    margin-top: 18px;
 }
 
 button {
-    width: 100%;
-
-    padding: 11px;
-
     border: none;
-
     border-radius: 8px;
-
-    background: #252936;
-
-    color: white;
-
-    font-size: 14px;
-
+    padding: 10px;
     cursor: pointer;
+    background: #242432;
+    color: white;
+    font-size: 13px;
 }
 
 button:hover {
-    background: #343847;
+    background: #343448;
 }
 
 #capsuleButton {
-    background: #6d3df5;
+    background: #6c4cff;
 }
 
 #capsuleButton:hover {
-    background: #7d51ff;
+    background: #7b61ff;
 }
 
 .status {
-    margin-top: 16px;
-
-    font-size: 13px;
-
-    color: #a9abb3;
+    margin-top: 12px;
+    font-size: 12px;
+    color: #aaa;
 }
 
 #capsuleOutput {
     margin-top: 12px;
-
-    padding: 12px;
-
-    max-height: 260px;
-
+    max-height: 220px;
     overflow: auto;
-
-    background: #0b0d11;
-
-    border: 1px solid #292d38;
-
+    background: #09090d;
     border-radius: 8px;
-
-    white-space: pre-wrap;
-
-    word-break: break-word;
-
+    padding: 10px;
     font-size: 11px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
 
-    line-height: 1.5;
-    
+
+/* ============================= */
+/* CAPSULE LIBRARY */
+/* ============================= */
+
+.library {
+    margin-top: 18px;
+}
+
+.library > p {
+    color: #888;
+    font-size: 13px;
+}
+
+
+.capsule-card {
+    background: #181820;
+    border: 1px solid #2a2a38;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+
+.capsule-card h3 {
+    margin: 0 0 6px 0;
+    font-size: 14px;
+    color: #ffffff;
+}
+
+
+.capsule-card p {
+    margin: 0 0 10px 0;
+    color: #888;
+    font-size: 11px;
+}
+
+
+.capsule-card button {
+    padding: 7px 9px;
+    margin-right: 5px;
+    font-size: 11px;
+}
+
+
+.capsule-card button:first-of-type {
+    background: #303044;
+}
+
+
+.capsule-card button:nth-of-type(2) {
+    background: #6c4cff;
+}
+
+
+.capsule-card button:last-of-type {
+    background: #45252b;
+}
+
+
+.capsule-card button:last-of-type:hover {
+    background: #633039;
 }

@@ -2,29 +2,18 @@
     box-sizing: border-box;
 }
 
-
 body {
     margin: 0;
-
     width: 380px;
-
     min-height: 500px;
-
-    font-family:
-        Inter,
-        Arial,
-        sans-serif;
-
+    font-family: Inter, Arial, sans-serif;
     background: #0b0b12;
-
     color: #ffffff;
 }
-
 
 .container {
     padding: 18px;
 }
-
 
 /* =========================
    HEADER
@@ -32,48 +21,31 @@ body {
 
 .header {
     display: flex;
-
     align-items: center;
-
     gap: 12px;
-
     margin-bottom: 20px;
 }
 
-
 .logo {
     width: 42px;
-
     height: 42px;
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     border-radius: 12px;
-
     background: #18152b;
-
     font-size: 22px;
 }
 
-
 .header h1 {
     margin: 0;
-
     font-size: 20px;
-
     font-weight: 700;
 }
 
-
 .header p {
     margin: 4px 0 0;
-
     color: #858595;
-
     font-size: 12px;
 }
 
@@ -84,73 +56,50 @@ body {
 
 button {
     border: none;
-
     border-radius: 9px;
-
     padding: 10px 12px;
-
     cursor: pointer;
-
     background: #1c1c28;
-
     color: #ffffff;
-
     font-size: 12px;
-
     transition:
         background 0.15s ease,
         transform 0.1s ease;
 }
 
-
 button:hover {
     background: #29293a;
 }
-
 
 button:active {
     transform: scale(0.98);
 }
 
-
 .primary-actions {
     display: flex;
-
     flex-direction: column;
-
     gap: 8px;
 }
 
-
 .primary-button {
     background: #6c4cff;
-
     font-weight: 600;
-
     font-size: 13px;
 }
-
 
 .primary-button:hover {
     background: #7b61ff;
 }
 
-
 .secondary-actions {
     display: grid;
-
-    grid-template-columns:
-        repeat(4, 1fr);
-
+    grid-template-columns: repeat(4, 1fr);
     gap: 6px;
-
     margin-top: 8px;
 }
 
-
 .secondary-actions button {
     padding: 9px 5px;
-
     font-size: 11px;
 }
 
@@ -161,11 +110,8 @@ button:active {
 
 .status {
     min-height: 18px;
-
     margin-top: 12px;
-
     color: #9a9aaa;
-
     font-size: 11px;
 }
 
@@ -178,141 +124,95 @@ button:active {
     margin-top: 12px;
 }
 
-
 .library-header {
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     margin-bottom: 10px;
 }
-
 
 .library-title {
     margin: 0;
-
     font-size: 14px;
 }
 
-
 .library-count {
     color: #777789;
-
     font-size: 11px;
 }
 
-
 .search-box {
     width: 100%;
-
     padding: 10px;
-
     margin-bottom: 10px;
-
     border: 1px solid #272736;
-
     border-radius: 8px;
-
     outline: none;
-
     background: #12121b;
-
     color: white;
-
     font-size: 12px;
 }
-
 
 .search-box:focus {
     border-color: #6c4cff;
 }
 
-
 .capsule-card {
     padding: 12px;
-
     margin-bottom: 9px;
-
     border: 1px solid #252532;
-
     border-radius: 11px;
-
     background: #14141d;
 }
-
 
 .capsule-card:hover {
     border-color: #38384d;
 }
 
-
 .capsule-card h3 {
     margin: 0 0 6px;
-
     font-size: 13px;
-
     line-height: 1.4;
-
     word-break: break-word;
 }
 
-
 .capsule-meta {
     display: flex;
-
     flex-wrap: wrap;
-
     gap: 6px;
-
     margin-bottom: 10px;
 }
 
-
 .meta-item {
     padding: 3px 6px;
-
     border-radius: 5px;
-
     background: #1d1d29;
-
     color: #858595;
-
     font-size: 9px;
 }
 
-
 .capsule-actions {
     display: flex;
-
     gap: 5px;
 }
 
-
 .capsule-actions button {
     flex: 1;
-
     padding: 7px 5px;
-
     font-size: 10px;
 }
-
 
 .view-capsule {
     background: #252536;
 }
 
-
 .continue-capsule {
     background: #6c4cff;
 }
 
-
 .delete-capsule {
     background: #392127;
 }
-
 
 .delete-capsule:hover {
     background: #512c34;
@@ -325,30 +225,18 @@ button:active {
 
 .capsule-output {
     display: none;
-
     max-height: 230px;
-
     overflow: auto;
-
     margin-top: 12px;
-
     padding: 11px;
-
     border-radius: 9px;
-
     background: #07070b;
-
     color: #bdbdca;
-
     font-size: 10px;
-
     line-height: 1.5;
-
     white-space: pre-wrap;
-
     word-break: break-word;
 }
-
 
 .capsule-output.visible {
     display: block;
@@ -361,11 +249,8 @@ button:active {
 
 .empty-library {
     padding: 22px 10px;
-
     text-align: center;
-
     color: #666677;
-
     font-size: 11px;
 }
 
@@ -376,16 +261,10 @@ button:active {
 
 footer {
     display: flex;
-
     justify-content: space-between;
-
     margin-top: 18px;
-
     padding-top: 10px;
-
     border-top: 1px solid #1d1d28;
-
     color: #565665;
-
     font-size: 9px;
 }

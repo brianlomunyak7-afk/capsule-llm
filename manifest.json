@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LLM Capsule",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Capture and continue AI conversations across different LLMs.",
   "permissions": [
     "storage",

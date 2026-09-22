@@ -1439,3 +1439,4 @@ async function renderLibrary() {
     status.textContent =
         `${capsules.length} capsule${capsules.length === 1 ? "" : "s"} in library.`;
 
+}

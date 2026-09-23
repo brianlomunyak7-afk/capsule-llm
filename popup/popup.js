@@ -1,26 +1,21 @@
+// ========================================
+// LLM CAPSULE
+// Simple Prompt Workflow
+// ========================================
+
+
+// ========================================
+// ELEMENTS
+// ========================================
+
 const capsuleButton =
     document.getElementById("capsuleButton");
 
-const viewButton =
-    document.getElementById("viewButton");
-
-const exportButton =
-    document.getElementById("exportButton");
-
-const importButton =
-    document.getElementById("importButton");
+const dropButton =
+    document.getElementById("dropButton");
 
 const importFile =
     document.getElementById("importFile");
-
-const continueButton =
-    document.getElementById("continueButton");
-
-const libraryButton =
-    document.getElementById("libraryButton");
-
-const capsuleOutput =
-    document.getElementById("capsuleOutput");
 
 const status =
     document.getElementById("status");
@@ -28,68 +23,262 @@ const status =
 const library =
     document.getElementById("library");
 
+const libraryCount =
+    document.getElementById("libraryCount");
 
-let currentLibrary = [];
+const promptPreview =
+    document.getElementById("promptPreview");
+
+const previewTitle =
+    document.getElementById("previewTitle");
+
+const promptText =
+    document.getElementById("promptText");
+
+const closePreview =
+    document.getElementById("closePreview");
+
+const copyPromptButton =
+    document.getElementById("copyPromptButton");
+
+const dropIntoAIButton =
+    document.getElementById("dropIntoAIButton");
 
 
 // ========================================
-// UTILITY FUNCTIONS
+// STORAGE
 // ========================================
 
-function generateCapsuleId() {
+async function getPrompts() {
 
-    return crypto.randomUUID();
+    const result =
+        await chrome.storage.local.get(
+            "promptLibrary"
+        );
+
+    return Array.isArray(
+        result.promptLibrary
+    )
+        ? result.promptLibrary
+        : [];
+}
+
+
+async function savePrompts(
+    prompts
+) {
+
+    await chrome.storage.local.set({
+
+        promptLibrary:
+            prompts
+
+    });
 
 }
 
 
-function ensureCapsuleId(capsule) {
+// ========================================
+// ID
+// ========================================
 
-    if (!capsule.capsuleId) {
+function generateId() {
 
-        capsule.capsuleId =
-            generateCapsuleId();
+    if (
+        crypto &&
+        crypto.randomUUID
+    ) {
+
+        return crypto.randomUUID();
 
     }
 
-    return capsule;
+    return (
+        Date.now().toString(36) +
+        Math.random()
+            .toString(36)
+            .substring(2)
+    );
 
 }
 
 
-function formatDate(date) {
+// ========================================
+// STATUS
+// ========================================
 
-    if (!date) {
+function setStatus(
+    message
+) {
 
-        return "Unknown date";
-
-    }
-
-    try {
-
-        return new Date(date).toLocaleString();
-
-    } catch {
-
-        return "Unknown date";
-
-    }
+    status.textContent =
+        message;
 
 }
 
 
-function showOutput(data) {
+// ========================================
+// NAME PROMPT
+// ========================================
 
-    capsuleOutput.textContent =
-        typeof data === "string"
-            ? data
-            : JSON.stringify(
-                data,
-                null,
-                2
-            );
+function askForName() {
 
-    capsuleOutput.classList.add(
+    const name =
+        window.prompt(
+            "Name this prompt:",
+            ""
+        );
+
+    if (
+        name === null
+    ) {
+
+        return null;
+
+    }
+
+    const cleanName =
+        name.trim();
+
+    if (
+        !cleanName
+    ) {
+
+        window.alert(
+            "Please enter a name."
+        );
+
+        return null;
+
+    }
+
+    return cleanName;
+
+}
+
+
+// ========================================
+// CREATE CONTINUATION PROMPT
+// ========================================
+
+function createContinuationPrompt(
+    captured,
+    messages
+) {
+
+    let prompt =
+
+        `Continue this conversation naturally.
+
+You are receiving context from a previous AI conversation.
+
+Do not restart the work from the beginning.
+
+Use the conversation below as existing context.
+
+Conversation title:
+${captured.title || "Untitled Conversation"}
+
+Previous conversation:
+`;
+
+
+    messages.forEach(
+        (message, index) => {
+
+            let role =
+                String(
+                    message.role ||
+                    "unknown"
+                ).toUpperCase();
+
+
+            if (
+                role === "USER"
+            ) {
+
+                role =
+                    "USER";
+
+            } else if (
+                role === "ASSISTANT"
+            ) {
+
+                role =
+                    "ASSISTANT";
+
+            }
+
+
+            prompt +=
+                `
+
+--- ${role} MESSAGE ${index + 1} ---
+
+${message.content || ""}
+`;
+
+        }
+    );
+
+
+    prompt += `
+
+--- END OF PREVIOUS CONVERSATION ---
+
+Continue from where the conversation ended.
+
+Preserve the important context, requirements, decisions, code, project state, and unresolved tasks.
+
+Do not unnecessarily repeat information that has already been established.
+
+Respond as if you are continuing the existing conversation.`;
+
+
+    return prompt;
+
+}
+
+
+// ========================================
+// SAVE PROMPT
+// ========================================
+
+async function savePrompt(
+    prompt
+) {
+
+    const prompts =
+        await getPrompts();
+
+
+    prompts.unshift(
+        prompt
+    );
+
+
+    await savePrompts(
+        prompts
+    );
+
+}
+
+
+// ========================================
+// OPEN PREVIEW
+// ========================================
+
+function openPreview(
+    prompt
+) {
+
+    previewTitle.textContent =
+        prompt.name;
+
+    promptText.value =
+        prompt.content;
+
+    promptPreview.classList.add(
         "visible"
     );
 
@@ -97,125 +286,331 @@ function showOutput(data) {
 
 
 // ========================================
-// LIBRARY
+// CLOSE PREVIEW
 // ========================================
 
-async function getLibrary() {
+closePreview.addEventListener(
+    "click",
+    () => {
 
-    const result =
-        await chrome.storage.local.get(
-            "capsuleLibrary"
-        );
-
-
-    const capsules =
-        Array.isArray(
-            result.capsuleLibrary
-        )
-            ? result.capsuleLibrary
-            : [];
-
-
-    return capsules.map(
-        ensureCapsuleId
-    );
-
-}
-
-
-async function saveLibrary(
-    capsules
-) {
-
-    await chrome.storage.local.set({
-
-        capsuleLibrary:
-            capsules
-
-    });
-
-}
-
-
-async function saveToLibrary(
-    capsule
-) {
-
-    capsule =
-        ensureCapsuleId(
-            capsule
-        );
-
-
-    const capsules =
-        await getLibrary();
-
-
-    const existingIndex =
-        capsules.findIndex(
-            item =>
-                item.capsuleId ===
-                capsule.capsuleId
-        );
-
-
-    if (
-        existingIndex !== -1
-    ) {
-
-        capsules[
-            existingIndex
-        ] = capsule;
-
-    } else {
-
-        capsules.unshift(
-            capsule
+        promptPreview.classList.remove(
+            "visible"
         );
 
     }
-
-
-    await saveLibrary(
-        capsules
-    );
-
-
-    return capsule;
-
-}
-
-
-async function saveCurrentCapsule(
-    capsule
-) {
-
-    capsule =
-        ensureCapsuleId(
-            capsule
-        );
-
-
-    await chrome.storage.local.set({
-
-        latestCapsule:
-            capsule
-
-    });
-
-
-    await saveToLibrary(
-        capsule
-    );
-
-
-    return capsule;
-
-}
+);
 
 
 // ========================================
-// CREATE CAPSULE
+// COPY PROMPT
+// ========================================
+
+copyPromptButton.addEventListener(
+    "click",
+    async () => {
+
+        const text =
+            promptText.value;
+
+        if (
+            !text
+        ) {
+
+            return;
+
+        }
+
+        try {
+
+            await navigator.clipboard.writeText(
+                text
+            );
+
+            copyPromptButton.textContent =
+                "Copied ✓";
+
+            setStatus(
+                "Prompt copied ✓"
+            );
+
+
+            setTimeout(
+                () => {
+
+                    copyPromptButton.textContent =
+                        "Copy";
+
+                },
+                1500
+            );
+
+        } catch (error) {
+
+            console.error(
+                error
+            );
+
+            setStatus(
+                "Could not copy prompt."
+            );
+
+        }
+
+    }
+);
+
+
+// ========================================
+// DROP INTO AI
+// ========================================
+
+dropIntoAIButton.addEventListener(
+    "click",
+    async () => {
+
+        const text =
+            promptText.value;
+
+        if (
+            !text
+        ) {
+
+            return;
+
+        }
+
+
+        try {
+
+            await navigator.clipboard.writeText(
+                text
+            );
+
+
+            const [tab] =
+                await chrome.tabs.query({
+
+                    active:
+                        true,
+
+                    currentWindow:
+                        true
+
+                });
+
+
+            if (
+                tab &&
+                tab.id
+            ) {
+
+                try {
+
+                    await chrome.scripting.executeScript({
+
+                        target: {
+
+                            tabId:
+                                tab.id
+
+                        },
+
+                        func: (
+                            prompt
+                        ) => {
+
+                            const selectors = [
+
+                                "textarea",
+
+                                "textarea[placeholder]",
+
+                                "[contenteditable='true']",
+
+                                "[role='textbox']"
+
+                            ];
+
+
+                            let input =
+                                null;
+
+
+                            for (
+                                const selector
+                                of selectors
+                            ) {
+
+                                input =
+                                    document.querySelector(
+                                        selector
+                                    );
+
+                                if (
+                                    input
+                                ) {
+
+                                    break;
+
+                                }
+
+                            }
+
+
+                            if (
+                                !input
+                            ) {
+
+                                return {
+
+                                    success:
+                                        false,
+
+                                    reason:
+                                        "No text input found."
+
+                                };
+
+                            }
+
+
+                            input.focus();
+
+
+                            if (
+                                input.tagName ===
+                                "TEXTAREA"
+                            ) {
+
+                                const setter =
+                                    Object.getOwnPropertyDescriptor(
+                                        HTMLTextAreaElement.prototype,
+                                        "value"
+                                    )?.set;
+
+
+                                if (
+                                    setter
+                                ) {
+
+                                    setter.call(
+                                        input,
+                                        prompt
+                                    );
+
+                                } else {
+
+                                    input.value =
+                                        prompt;
+
+                                }
+
+
+                                input.dispatchEvent(
+                                    new Event(
+                                        "input",
+                                        {
+                                            bubbles:
+                                                true
+                                        }
+                                    )
+                                );
+
+                                input.dispatchEvent(
+                                    new Event(
+                                        "change",
+                                        {
+                                            bubbles:
+                                                true
+                                        }
+                                    )
+                                );
+
+                            } else {
+
+                                input.textContent =
+                                    prompt;
+
+
+                                input.dispatchEvent(
+                                    new InputEvent(
+                                        "input",
+                                        {
+                                            bubbles:
+                                                true,
+
+                                            inputType:
+                                                "insertText",
+
+                                            data:
+                                                prompt
+                                        }
+                                    )
+                                );
+
+                            }
+
+
+                            return {
+
+                                success:
+                                    true
+
+                            };
+
+                        },
+
+                        args: [
+                            text
+                        ]
+
+                    });
+
+
+                    setStatus(
+                        "Prompt dropped into the AI input ✓"
+                    );
+
+                } catch (
+                    injectionError
+                ) {
+
+                    console.error(
+                        injectionError
+                    );
+
+                    setStatus(
+                        "Prompt copied. Paste it into the AI input."
+                    );
+
+                }
+
+            } else {
+
+                setStatus(
+                    "Prompt copied. Paste it into the AI input."
+                );
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                error
+            );
+
+            setStatus(
+                "Prompt copied. Paste it into the AI input."
+            );
+
+        }
+
+    }
+);
+
+
+// ========================================
+// GENERATE PROMPT
 // ========================================
 
 capsuleButton.addEventListener(
@@ -225,17 +620,21 @@ capsuleButton.addEventListener(
         capsuleButton.textContent =
             "Capturing...";
 
-        status.textContent =
-            "";
+        setStatus(
+            ""
+        );
+
 
         try {
 
             const [tab] =
                 await chrome.tabs.query({
 
-                    active: true,
+                    active:
+                        true,
 
-                    currentWindow: true
+                    currentWindow:
+                        true
 
                 });
 
@@ -271,7 +670,8 @@ capsuleButton.addEventListener(
                             );
 
 
-                        const messages = [];
+                        const messages =
+                            [];
 
 
                         elements.forEach(
@@ -333,10 +733,12 @@ capsuleButton.addEventListener(
 
 
             const captured =
-                results[0].result;
+                results[0]?.result;
 
 
-            if (!captured) {
+            if (
+                !captured
+            ) {
 
                 throw new Error(
                     "Nothing was captured."
@@ -372,24 +774,46 @@ capsuleButton.addEventListener(
             }
 
 
-            const capsule = {
+            const promptContent =
+                createContinuationPrompt(
+                    captured,
+                    messages
+                );
 
-                capsuleId:
-                    generateCapsuleId(),
 
-                capsuleVersion:
-                    "1.1",
+            const name =
+                askForName();
 
-                app:
+
+            if (
+                !name
+            ) {
+
+                capsuleButton.textContent =
+                    "✨ Generate Prompt";
+
+                setStatus(
+                    "Generation cancelled."
+                );
+
+                return;
+
+            }
+
+
+            const prompt = {
+
+                id:
+                    generateId(),
+
+                name:
+                    name,
+
+                content:
+                    promptContent,
+
+                source:
                     "ChatGPT",
-
-                title:
-                    captured.title ||
-                    "Untitled Conversation",
-
-                createdAt:
-                    new Date()
-                        .toISOString(),
 
                 sourceUrl:
                     captured.url,
@@ -397,59 +821,67 @@ capsuleButton.addEventListener(
                 messageCount:
                     messages.length,
 
-                messages:
-                    messages
+                createdAt:
+                    new Date()
+                        .toISOString()
 
             };
 
 
-            await saveCurrentCapsule(
-                capsule
+            await savePrompt(
+                prompt
             );
-
-
-            showOutput(
-                capsule
-            );
-
-
-            status.textContent =
-                `Captured ${messages.length} messages and saved to library.`;
-
-
-            capsuleButton.textContent =
-                "Capsule Saved ✓";
 
 
             await renderLibrary();
 
 
-            setTimeout(() => {
+            capsuleButton.textContent =
+                "Saved ✓";
 
-                capsuleButton.textContent =
-                    "✨ Create Capsule";
 
-            }, 2000);
+            setStatus(
+                `${name} saved successfully.`
+            );
+
+
+            setTimeout(
+                () => {
+
+                    capsuleButton.textContent =
+                        "✨ Generate Prompt";
+
+                },
+                1800
+            );
 
 
         } catch (error) {
 
             console.error(
-                "Capture error:",
+                "Generation error:",
                 error
             );
 
 
             capsuleButton.textContent =
-                "Capture failed";
+                "Generation failed";
 
 
-            status.textContent =
-                "Capture failed";
+            setStatus(
+                error.message ||
+                "Could not generate prompt."
+            );
 
 
-            showOutput(
-                error.message
+            setTimeout(
+                () => {
+
+                    capsuleButton.textContent =
+                        "✨ Generate Prompt";
+
+                },
+                1800
             );
 
         }
@@ -459,161 +891,10 @@ capsuleButton.addEventListener(
 
 
 // ========================================
-// VIEW SAVED CAPSULE
+// DROP PROMPT BUTTON
 // ========================================
 
-viewButton.addEventListener(
-    "click",
-    async () => {
-
-        const result =
-            await chrome.storage.local.get(
-                "latestCapsule"
-            );
-
-
-        if (
-            !result.latestCapsule
-        ) {
-
-            status.textContent =
-                "No saved capsule found.";
-
-            return;
-
-        }
-
-
-        const capsule =
-            ensureCapsuleId(
-                result.latestCapsule
-            );
-
-
-        await chrome.storage.local.set({
-
-            latestCapsule:
-                capsule
-
-        });
-
-
-        showOutput(
-            capsule
-        );
-
-
-        status.textContent =
-            `Capsule contains ${capsule.messageCount || capsule.messages.length} messages.`;
-
-    }
-);
-
-
-// ========================================
-// EXPORT
-// ========================================
-
-exportButton.addEventListener(
-    "click",
-    async () => {
-
-        const result =
-            await chrome.storage.local.get(
-                "latestCapsule"
-            );
-
-
-        if (
-            !result.latestCapsule
-        ) {
-
-            status.textContent =
-                "No saved capsule to export.";
-
-            return;
-
-        }
-
-
-        const capsule =
-            ensureCapsuleId(
-                result.latestCapsule
-            );
-
-
-        const capsuleData =
-            JSON.stringify(
-                capsule,
-                null,
-                2
-            );
-
-
-        const blob =
-            new Blob(
-                [
-                    capsuleData
-                ],
-                {
-                    type:
-                        "application/json"
-                }
-            );
-
-
-        const url =
-            URL.createObjectURL(
-                blob
-            );
-
-
-        const link =
-            document.createElement(
-                "a"
-            );
-
-
-        link.href =
-            url;
-
-
-        link.download =
-            `${capsule.capsuleId}.llmcapsule`;
-
-
-        link.click();
-
-
-        URL.revokeObjectURL(
-            url
-        );
-
-
-        status.textContent =
-            "Capsule exported ✓";
-
-
-        exportButton.textContent =
-            "Exported ✓";
-
-
-        setTimeout(() => {
-
-            exportButton.textContent =
-                "Export";
-
-        }, 2000);
-
-    }
-);
-
-
-// ========================================
-// IMPORT
-// ========================================
-
-importButton.addEventListener(
+dropButton.addEventListener(
     "click",
     () => {
 
@@ -623,6 +904,10 @@ importButton.addEventListener(
 );
 
 
+// ========================================
+// IMPORT / DROP FILE
+// ========================================
+
 importFile.addEventListener(
     "change",
     async () => {
@@ -631,7 +916,9 @@ importFile.addEventListener(
             importFile.files[0];
 
 
-        if (!file) {
+        if (
+            !file
+        ) {
 
             return;
 
@@ -644,100 +931,179 @@ importFile.addEventListener(
                 await file.text();
 
 
-            const capsule =
-                JSON.parse(
-                    text
-                );
+            let importedPrompt;
 
 
-            if (
-                !capsule ||
-                typeof capsule !==
-                    "object"
+            /*
+             * Support our generated
+             * prompt format.
+             */
+
+            try {
+
+                const parsed =
+                    JSON.parse(
+                        text
+                    );
+
+
+                if (
+                    parsed &&
+                    typeof parsed ===
+                        "object" &&
+                    parsed.content
+                ) {
+
+                    importedPrompt = {
+
+                        id:
+                            generateId(),
+
+                        name:
+                            parsed.name ||
+                            file.name
+                                .replace(
+                                    /\.[^/.]+$/,
+                                    ""
+                                ),
+
+                        content:
+                            parsed.content,
+
+                        source:
+                            parsed.source ||
+                            "Imported",
+
+                        sourceUrl:
+                            parsed.sourceUrl ||
+                            "",
+
+                        messageCount:
+                            parsed.messageCount ||
+                            0,
+
+                        createdAt:
+                            new Date()
+                                .toISOString()
+
+                    };
+
+                }
+
+            } catch (
+                jsonError
             ) {
 
-                throw new Error(
-                    "Invalid capsule file."
-                );
+                /*
+                 * Not JSON.
+                 * Treat it as plain text.
+                 */
 
             }
 
 
+            /*
+             * Plain text file.
+             */
+
             if (
-                !Array.isArray(
-                    capsule.messages
-                )
+                !importedPrompt
             ) {
 
-                throw new Error(
-                    "This file does not contain a valid messages array."
+                const fileName =
+                    file.name
+                        .replace(
+                            /\.[^/.]+$/,
+                            ""
+                        );
+
+
+                importedPrompt = {
+
+                    id:
+                        generateId(),
+
+                    name:
+                        fileName ||
+                        "Imported Prompt",
+
+                    content:
+                        text,
+
+                    source:
+                        "Imported",
+
+                    sourceUrl:
+                        "",
+
+                    messageCount:
+                        0,
+
+                    createdAt:
+                        new Date()
+                            .toISOString()
+
+                };
+
+            }
+
+
+            const name =
+                window.prompt(
+                    "Name this prompt:",
+                    importedPrompt.name
                 );
 
+
+            if (
+                name === null
+            ) {
+
+                importFile.value =
+                    "";
+
+                return;
+
             }
 
 
-            ensureCapsuleId(
-                capsule
-            );
-
-
-            capsule.messageCount =
-                capsule.messages.length;
+            const cleanName =
+                name.trim();
 
 
             if (
-                !capsule.capsuleVersion
+                cleanName
             ) {
 
-                capsule.capsuleVersion =
-                    "1.1";
+                importedPrompt.name =
+                    cleanName;
 
             }
 
 
-            await saveCurrentCapsule(
-                capsule
+            await savePrompt(
+                importedPrompt
             );
-
-
-            showOutput(
-                capsule
-            );
-
-
-            status.textContent =
-                `Imported ${capsule.messages.length} messages and added to library ✓`;
-
-
-            importButton.textContent =
-                "Imported ✓";
 
 
             await renderLibrary();
 
 
-            setTimeout(() => {
-
-                importButton.textContent =
-                    "Import";
-
-            }, 2000);
+            setStatus(
+                `${importedPrompt.name} added ✓`
+            );
 
 
         } catch (error) {
 
             console.error(
-                "Import error:",
+                "Drop error:",
                 error
             );
 
 
-            status.textContent =
-                "Import failed";
-
-
-            showOutput(
-                error.message
+            setStatus(
+                "Could not add prompt."
             );
 
         }
@@ -751,267 +1117,25 @@ importFile.addEventListener(
 
 
 // ========================================
-// CONTINUE CONVERSATION
-// ========================================
-
-async function continueCapsule(
-    capsule
-) {
-
-    if (
-        !capsule ||
-        !Array.isArray(
-            capsule.messages
-        ) ||
-        capsule.messages.length === 0
-    ) {
-
-        status.textContent =
-            "Capsule contains no messages.";
-
-        return;
-
-    }
-
-
-    let prompt =
-
-        `I am continuing a conversation that was previously held with ${capsule.app || "another AI assistant"}.
-
-The original conversation is provided below.
-
-Treat it as existing conversation context rather than starting from scratch.
-
-Conversation title:
-${capsule.title || "Untitled Conversation"}
-
-Conversation:
-`;
-
-
-    capsule.messages.forEach(
-        (message, index) => {
-
-            let role =
-                String(
-                    message.role ||
-                    "unknown"
-                ).toUpperCase();
-
-
-            if (
-                role === "USER"
-            ) {
-
-                role = "USER";
-
-            } else if (
-                role === "ASSISTANT"
-            ) {
-
-                role = "ASSISTANT";
-
-            }
-
-
-            prompt +=
-                `\n--- ${role} MESSAGE ${index + 1} ---\n`;
-
-
-            prompt +=
-                `${message.content || ""}\n`;
-
-        }
-    );
-
-
-    prompt += `
-
---- END OF CONVERSATION ---
-
-Continue naturally from the conversation above.
-
-Preserve important context, decisions, requirements, code, project state, and unresolved tasks.
-
-Do not restart the project.
-
-Do not unnecessarily repeat information already established.
-
-Continue from where the previous conversation ended.`;
-
-
-    await navigator.clipboard.writeText(
-        prompt
-    );
-
-
-    showOutput(
-        prompt
-    );
-
-
-    status.textContent =
-        "Continuation prompt copied ✓";
-
-
-    continueButton.textContent =
-        "Copied ✓";
-
-
-    setTimeout(() => {
-
-        continueButton.textContent =
-            "Continue";
-
-    }, 2000);
-
-}
-
-
-continueButton.addEventListener(
-    "click",
-    async () => {
-
-        try {
-
-            const result =
-                await chrome.storage.local.get(
-                    "latestCapsule"
-                );
-
-
-            if (
-                !result.latestCapsule
-            ) {
-
-                status.textContent =
-                    "No capsule available.";
-
-                return;
-
-            }
-
-
-            const capsule =
-                ensureCapsuleId(
-                    result.latestCapsule
-                );
-
-
-            await continueCapsule(
-                capsule
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "Continuation error:",
-                error
-            );
-
-
-            status.textContent =
-                "Could not create continuation prompt.";
-
-
-            showOutput(
-                error.message
-            );
-
-        }
-
-    }
-);
-
-
-// ========================================
-// LIBRARY BUTTON
-// ========================================
-
-libraryButton.addEventListener(
-    "click",
-    async () => {
-
-        await renderLibrary();
-
-    }
-);
-
-
-// ========================================
-// LIBRARY RENDERING
+// LIBRARY
 // ========================================
 
 async function renderLibrary() {
 
-    const capsules =
-        await getLibrary();
-
-
-    currentLibrary =
-        capsules;
+    const prompts =
+        await getPrompts();
 
 
     library.innerHTML =
         "";
 
 
-    const header =
-        document.createElement(
-            "div"
-        );
-
-
-    header.className =
-        "library-header";
-
-
-    const title =
-        document.createElement(
-            "h2"
-        );
-
-
-    title.className =
-        "library-title";
-
-
-    title.textContent =
-        "My Capsules";
-
-
-    const count =
-        document.createElement(
-            "span"
-        );
-
-
-    count.className =
-        "library-count";
-
-
-    count.textContent =
-        `${capsules.length} capsule${capsules.length === 1 ? "" : "s"}`;
-
-
-    header.appendChild(
-        title
-    );
-
-
-    header.appendChild(
-        count
-    );
-
-
-    library.appendChild(
-        header
-    );
+    libraryCount.textContent =
+        prompts.length;
 
 
     if (
-        capsules.length === 0
+        prompts.length === 0
     ) {
 
         const empty =
@@ -1024,8 +1148,11 @@ async function renderLibrary() {
             "empty-library";
 
 
-        empty.textContent =
-            "No capsules saved yet.";
+        empty.innerHTML =
+            `
+                <strong>No saved prompts yet.</strong>
+                Generate a prompt and it will appear here.
+            `;
 
 
         library.appendChild(
@@ -1038,405 +1165,153 @@ async function renderLibrary() {
     }
 
 
-    const search =
-        document.createElement(
-            "input"
-        );
+    prompts.forEach(
+        prompt => {
 
-
-    search.className =
-        "search-box";
-
-
-    search.placeholder =
-        "Search capsules...";
-
-
-    library.appendChild(
-        search
-    );
-
-
-    const list =
-        document.createElement(
-            "div"
-        );
-
-
-    list.id =
-        "capsuleList";
-
-
-    library.appendChild(
-        list
-    );
-
-
-    function renderList(
-        filtered
-    ) {
-
-        list.innerHTML =
-            "";
-
-
-        if (
-            filtered.length === 0
-        ) {
-
-            const empty =
+            const card =
                 document.createElement(
                     "div"
                 );
 
 
-            empty.className =
-                "empty-library";
+            card.className =
+                "prompt-card";
 
 
-            empty.textContent =
-                "No matching capsules.";
+            /*
+             * Make the card draggable.
+             */
+
+            card.draggable =
+                true;
 
 
-            list.appendChild(
-                empty
+            card.dataset.promptId =
+                prompt.id;
+
+
+            const nameContainer =
+                document.createElement(
+                    "div"
+                );
+
+
+            nameContainer.className =
+                "prompt-name";
+
+
+            const icon =
+                document.createElement(
+                    "span"
+                );
+
+
+            icon.className =
+                "prompt-icon";
+
+
+            icon.textContent =
+                "📦";
+
+
+            const name =
+                document.createElement(
+                    "span"
+                );
+
+
+            name.textContent =
+                prompt.name;
+
+
+            nameContainer.appendChild(
+                icon
             );
 
 
-            return;
+            nameContainer.appendChild(
+                name
+            );
 
-        }
+
+            const arrow =
+                document.createElement(
+                    "span"
+                );
 
 
-        filtered.forEach(
-            capsule => {
+            arrow.className =
+                "prompt-arrow";
 
-                const card =
-                    document.createElement(
-                        "div"
+
+            arrow.textContent =
+                "›";
+
+
+            card.appendChild(
+                nameContainer
+            );
+
+
+            card.appendChild(
+                arrow
+            );
+
+
+            /*
+             * Click = open prompt.
+             */
+
+            card.addEventListener(
+                "click",
+                () => {
+
+                    openPreview(
+                        prompt
+                    );
+
+                }
+            );
+
+
+            /*
+             * Drag = provide prompt text.
+             */
+
+            card.addEventListener(
+                "dragstart",
+                event => {
+
+                    event.dataTransfer.setData(
+                        "text/plain",
+                        prompt.content
                     );
 
 
-                card.className =
-                    "capsule-card";
+                    event.dataTransfer.effectAllowed =
+                        "copy";
 
 
-                const cardTitle =
-                    document.createElement(
-                        "h3"
+                    setStatus(
+                        `Dragging ${prompt.name}...`
                     );
 
+                }
+            );
 
-                cardTitle.textContent =
-                    capsule.title ||
-                    "Untitled Capsule";
 
-
-                const meta =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                meta.className =
-                    "capsule-meta";
-
-
-                const app =
-                    document.createElement(
-                        "span"
-                    );
-
-
-                app.className =
-                    "meta-item";
-
-
-                app.textContent =
-                    capsule.app ||
-                    "Unknown";
-
-
-                const messages =
-                    document.createElement(
-                        "span"
-                    );
-
-
-                messages.className =
-                    "meta-item";
-
-
-                messages.textContent =
-                    `${capsule.messages.length} messages`;
-
-
-                const date =
-                    document.createElement(
-                        "span"
-                    );
-
-
-                date.className =
-                    "meta-item";
-
-
-                date.textContent =
-                    formatDate(
-                        capsule.createdAt
-                    );
-
-
-                meta.appendChild(
-                    app
-                );
-
-
-                meta.appendChild(
-                    messages
-                );
-
-
-                meta.appendChild(
-                    date
-                );
-
-
-                const actions =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                actions.className =
-                    "capsule-actions";
-
-
-                const view =
-                    document.createElement(
-                        "button"
-                    );
-
-
-                view.className =
-                    "view-capsule";
-
-
-                view.textContent =
-                    "View";
-
-
-                view.addEventListener(
-                    "click",
-                    async () => {
-
-                        await chrome.storage.local.set({
-
-                            latestCapsule:
-                                capsule
-
-                        });
-
-
-                        showOutput(
-                            capsule
-                        );
-
-
-                        status.textContent =
-                            "Capsule loaded ✓";
-
-                    }
-                );
-
-
-                const continueBtn =
-                    document.createElement(
-                        "button"
-                    );
-
-
-                continueBtn.className =
-                    "continue-capsule";
-
-
-                continueBtn.textContent =
-                    "Continue";
-
-
-                continueBtn.addEventListener(
-                    "click",
-                    async () => {
-
-                        await chrome.storage.local.set({
-
-                            latestCapsule:
-                                capsule
-
-                        });
-
-
-                        await continueCapsule(
-                            capsule
-                        );
-
-                    }
-                );
-
-
-                const deleteBtn =
-                    document.createElement(
-                        "button"
-                    );
-
-
-                deleteBtn.className =
-                    "delete-capsule";
-
-
-                deleteBtn.textContent =
-                    "Delete";
-
-
-                deleteBtn.addEventListener(
-                    "click",
-                    async () => {
-
-                        const confirmed =
-                            confirm(
-                                "Delete this capsule?"
-                            );
-
-
-                        if (
-                            !confirmed
-                        ) {
-
-                            return;
-
-                        }
-
-
-                        const updated =
-                            (
-                                await getLibrary()
-                            ).filter(
-                                item =>
-                                    item.capsuleId !==
-                                    capsule.capsuleId
-                            );
-
-
-                        await saveLibrary(
-                            updated
-                        );
-
-
-                        await renderLibrary();
-
-
-                        status.textContent =
-                            "Capsule deleted.";
-
-                    }
-                );
-
-
-                actions.appendChild(
-                    view
-                );
-
-
-                actions.appendChild(
-                    continueBtn
-                );
-
-
-                actions.appendChild(
-                    deleteBtn
-                );
-
-
-                card.appendChild(
-                    cardTitle
-                );
-
-
-                card.appendChild(
-                    meta
-                );
-
-
-                card.appendChild(
-                    actions
-                );
-
-
-                list.appendChild(
-                    card
-                );
-
-            }
-        );
-
-    }
-
-
-    renderList(
-        capsules
-    );
-
-
-    search.addEventListener(
-        "input",
-        () => {
-
-            const query =
-                search.value
-                    .toLowerCase()
-                    .trim();
-
-
-            const filtered =
-                capsules.filter(
-                    capsule => {
-
-                        const title =
-                            (
-                                capsule.title ||
-                                ""
-                            ).toLowerCase();
-
-
-                        const app =
-                            (
-                                capsule.app ||
-                                ""
-                            ).toLowerCase();
-
-
-                        return (
-                            title.includes(
-                                query
-                            ) ||
-                            app.includes(
-                                query
-                            )
-                        );
-
-                    }
-                );
-
-
-            renderList(
-                filtered
+            library.appendChild(
+                card
             );
 
         }
     );
 
 
-    status.textContent =
-        `${capsules.length} capsule${capsules.length === 1 ? "" : "s"} in library.`;
 
-}
+
+// ========================================
+// STARTUP
+// ========================================
+
+renderLibrary();

@@ -13,6 +13,7 @@
 
 <div class="container">
 
+    <!-- Header -->
     <header class="header">
 
         <div class="logo">
@@ -21,87 +22,127 @@
 
         <div>
             <h1>LLM Capsule</h1>
-
-            <p>
-                Carry your conversation anywhere.
-            </p>
+            <p>Carry your conversation anywhere.</p>
         </div>
 
     </header>
 
 
-    <section class="primary-actions">
+    <!-- Main actions -->
+    <section class="main-actions">
 
         <button
             id="capsuleButton"
-            class="primary-button">
+            class="generate-button">
 
-            ✨ Create Capsule
-
-        </button>
-
-        <button id="libraryButton">
-
-            📦 Capsule Library
+            ✨ Generate Prompt
 
         </button>
 
-    </section>
 
+        <button
+            id="dropButton"
+            class="drop-button">
 
-    <section class="secondary-actions">
+            📥 Drop Prompt
 
-        <button id="viewButton">
-            View Saved
-        </button>
-
-        <button id="exportButton">
-            Export
-        </button>
-
-        <button id="importButton">
-            Import
-        </button>
-
-        <button id="continueButton">
-            Continue
         </button>
 
     </section>
 
 
+    <!-- Hidden file input -->
     <input
         type="file"
         id="importFile"
-        accept=".json"
+        accept=".json,.llmcapsule,.txt"
         hidden
     >
 
 
+    <!-- Status -->
     <div
         id="status"
         class="status">
     </div>
 
 
-    <section
-        id="library"
-        class="library">
+    <!-- Saved prompts -->
+    <section class="saved-section">
+
+        <div class="section-header">
+
+            <h2>Saved Prompts</h2>
+
+            <span
+                id="libraryCount"
+                class="library-count">
+                0
+            </span>
+
+        </div>
+
+
+        <div
+            id="library"
+            class="library">
+
+        </div>
 
     </section>
 
 
-    <pre
-        id="capsuleOutput"
-        class="capsule-output">
-    </pre>
+    <!-- Prompt preview -->
+    <section
+        id="promptPreview"
+        class="prompt-preview">
+
+        <div class="preview-header">
+
+            <h2 id="previewTitle">
+                Prompt
+            </h2>
+
+            <button
+                id="closePreview"
+                class="close-button">
+                ✕
+            </button>
+
+        </div>
 
 
+        <textarea
+            id="promptText"
+            class="prompt-text"
+            readonly>
+        </textarea>
+
+
+        <div class="preview-actions">
+
+            <button
+                id="copyPromptButton">
+                Copy
+            </button>
+
+            <button
+                id="dropIntoAIButton"
+                class="drop-action">
+                📥 Drop into AI
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- Footer -->
     <footer>
 
         <span>LLM Capsule</span>
 
-        <span>v0.2.0</span>
+        <span>v0.3.0</span>
 
     </footer>
 

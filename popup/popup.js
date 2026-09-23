@@ -1,6 +1,6 @@
 // ========================================
 // LLM CAPSULE
-// Simple Prompt Workflow
+// Powerful Conversation Handoff
 // ========================================
 
 
@@ -158,7 +158,7 @@ function askForName() {
 
 
 // ========================================
-// CREATE CONTINUATION PROMPT
+// CREATE POWERFUL CONTINUATION PROMPT
 // ========================================
 
 function createContinuationPrompt(
@@ -168,18 +168,93 @@ function createContinuationPrompt(
 
     let prompt =
 
-        `Continue this conversation naturally.
+        `==================================================
+LLM CAPSULE — CONVERSATION HANDOFF
+==================================================
 
-You are receiving context from a previous AI conversation.
+IMPORTANT:
 
-Do not restart the work from the beginning.
+You are continuing an existing AI conversation.
 
-Use the conversation below as existing context.
+This is NOT a new task.
 
-Conversation title:
+The user has moved this conversation from another
+AI session into your current session.
+
+Treat everything below as existing context.
+
+Do NOT unnecessarily restart the work.
+
+Do NOT ask the user to repeat information that is
+already available in this conversation.
+
+Continue from the exact point where the previous
+conversation ended.
+
+==================================================
+CONVERSATION INFORMATION
+==================================================
+
+Title:
 ${captured.title || "Untitled Conversation"}
 
-Previous conversation:
+Source:
+${captured.source || "Unknown AI"}
+
+Original URL:
+${captured.url || "Unknown"}
+
+Message count:
+${messages.length}
+
+==================================================
+CONTINUATION RULES
+==================================================
+
+Before responding, understand:
+
+1. What the user is trying to accomplish.
+2. What has already been completed.
+3. What decisions have already been made.
+4. What requirements and constraints exist.
+5. What code, files, technologies, or tools are involved.
+6. What problems have already been solved.
+7. What problems remain unresolved.
+8. What the user's latest request is.
+
+Preserve the previous conversation's:
+
+- requirements
+- instructions
+- decisions
+- terminology
+- project structure
+- technical choices
+- code
+- configuration
+- constraints
+- unresolved problems
+- completed work
+- pending work
+
+Do not discard previous decisions unless the user
+explicitly asks for a change.
+
+If the previous conversation contains code, preserve
+the code accurately.
+
+If the previous conversation contains technical
+details, treat them as existing project context.
+
+If the previous conversation contains a partially
+completed task, continue from that point rather than
+starting again.
+
+The user's latest message has priority.
+
+==================================================
+FULL PREVIOUS CONVERSATION
+==================================================
 `;
 
 
@@ -207,32 +282,73 @@ Previous conversation:
                 role =
                     "ASSISTANT";
 
+            } else if (
+                role === "SYSTEM"
+            ) {
+
+                role =
+                    "SYSTEM";
+
+            } else {
+
+                role =
+                    "OTHER";
+
             }
 
 
             prompt +=
                 `
 
---- ${role} MESSAGE ${index + 1} ---
+--------------------------------------------------
+${role} MESSAGE ${index + 1}
+--------------------------------------------------
 
 ${message.content || ""}
+
 `;
 
         }
     );
 
 
-    prompt += `
+    prompt +=
 
---- END OF PREVIOUS CONVERSATION ---
+        `==================================================
+END OF PREVIOUS CONVERSATION
+==================================================
 
-Continue from where the conversation ended.
+FINAL CONTINUATION INSTRUCTION
 
-Preserve the important context, requirements, decisions, code, project state, and unresolved tasks.
+Continue the conversation naturally from where it
+ended.
 
-Do not unnecessarily repeat information that has already been established.
+Do not restart the project.
 
-Respond as if you are continuing the existing conversation.`;
+Do not unnecessarily summarize everything again.
+
+Do not ask for information that is already present
+above.
+
+Use the previous conversation as your working context.
+
+If the user was in the middle of implementing
+something, continue that implementation.
+
+If the user asked for a specific next step, address
+that next step directly.
+
+If code was already written, build on the existing
+code rather than replacing it without a reason.
+
+The goal is for the user to feel that you are the
+same assistant continuing the same conversation,
+even though the conversation has been moved to you.
+
+==================================================
+CONTINUE FROM HERE
+==================================================
+`;
 
 
     return prompt;
@@ -651,6 +767,10 @@ capsuleButton.addEventListener(
             }
 
 
+            // ========================================
+            // CAPTURE CONVERSATION
+            // ========================================
+
             const results =
                 await chrome.scripting.executeScript({
 
@@ -664,18 +784,213 @@ capsuleButton.addEventListener(
 
                     func: () => {
 
+                        // ========================================
+                        // FIND CONVERSATION MESSAGES
+                        // ========================================
+
                         const elements =
                             document.querySelectorAll(
                                 "[data-message-author-role]"
                             );
 
 
-                        const messages =
-                            [];
+                        const messages = [];
 
+
+                        // ========================================
+                        // EXTRACT MESSAGE CONTENT
+                        // ========================================
+
+                        function extractMessageContent(
+                            element
+                        ) {
+
+                            const clone =
+                                element.cloneNode(
+                                    true
+                                );
+
+
+                            // ----------------------------------------
+                            // PRESERVE CODE BLOCKS
+                            // ----------------------------------------
+
+                            clone.querySelectorAll(
+                                "pre"
+                            ).forEach(
+                                pre => {
+
+                                    const code =
+                                        pre.querySelector(
+                                            "code"
+                                        );
+
+
+                                    const codeText =
+                                        code
+                                            ? code.innerText
+                                            : pre.innerText;
+
+
+                                    const language =
+                                        code?.className
+                                            ?.match(
+                                                /language-([a-zA-Z0-9_-]+)/
+                                            )?.[1] ||
+                                        "";
+
+
+                                    const fencedCode =
+                                        `\n\n\`\`\`${language}\n` +
+                                        `${codeText.trim()}\n` +
+                                        `\`\`\`\n\n`;
+
+
+                                    pre.replaceWith(
+                                        document.createTextNode(
+                                            fencedCode
+                                        )
+                                    );
+
+                                }
+                            );
+
+
+                            // ----------------------------------------
+                            // PRESERVE INLINE CODE
+                            // ----------------------------------------
+
+                            clone.querySelectorAll(
+                                "code"
+                            ).forEach(
+                                code => {
+
+                                    if (
+                                        code.closest(
+                                            "pre"
+                                        )
+                                    ) {
+
+                                        return;
+
+                                    }
+
+
+                                    const codeText =
+                                        code.innerText
+                                            .trim();
+
+
+                                    code.replaceWith(
+                                        document.createTextNode(
+                                            `\`${codeText}\``
+                                        )
+                                    );
+
+                                }
+                            );
+
+
+                            // ----------------------------------------
+                            // PRESERVE LINKS
+                            // ----------------------------------------
+
+                            clone.querySelectorAll(
+                                "a[href]"
+                            ).forEach(
+                                link => {
+
+                                    const text =
+                                        link.innerText
+                                            .trim();
+
+
+                                    const href =
+                                        link.href;
+
+
+                                    if (
+                                        href &&
+                                        text &&
+                                        text !== href
+                                    ) {
+
+                                        link.replaceWith(
+                                            document.createTextNode(
+                                                `[${text}](${href})`
+                                            )
+                                        );
+
+                                    } else if (
+                                        href
+                                    ) {
+
+                                        link.replaceWith(
+                                            document.createTextNode(
+                                                href
+                                            )
+                                        );
+
+                                    }
+
+                                }
+                            );
+
+
+                            // ----------------------------------------
+                            // PRESERVE LIST STRUCTURE
+                            // ----------------------------------------
+
+                            clone.querySelectorAll(
+                                "li"
+                            ).forEach(
+                                item => {
+
+                                    const text =
+                                        item.innerText
+                                            .trim();
+
+
+                                    if (
+                                        text
+                                    ) {
+
+                                        item.insertBefore(
+                                            document.createTextNode(
+                                                "• "
+                                            ),
+                                            item.firstChild
+                                        );
+
+                                    }
+
+                                }
+                            );
+
+
+                            // ----------------------------------------
+                            // EXTRACT FINAL TEXT
+                            // ----------------------------------------
+
+                            return clone.innerText
+                                .replace(
+                                    /\n{3,}/g,
+                                    "\n\n"
+                                )
+                                .trim();
+
+                        }
+
+
+                        // ========================================
+                        // EXTRACT ALL MESSAGES
+                        // ========================================
 
                         elements.forEach(
-                            element => {
+                            (
+                                element,
+                                index
+                            ) => {
 
                                 const role =
                                     element.getAttribute(
@@ -684,8 +999,9 @@ capsuleButton.addEventListener(
 
 
                                 const content =
-                                    element.innerText
-                                        .trim();
+                                    extractMessageContent(
+                                        element
+                                    );
 
 
                                 if (
@@ -699,8 +1015,12 @@ capsuleButton.addEventListener(
 
                                 messages.push({
 
+                                    index:
+                                        index + 1,
+
                                     role:
-                                        role,
+                                        role ||
+                                        "unknown",
 
                                     content:
                                         content
@@ -711,6 +1031,10 @@ capsuleButton.addEventListener(
                         );
 
 
+                        // ========================================
+                        // PAGE INFORMATION
+                        // ========================================
+
                         return {
 
                             title:
@@ -718,6 +1042,9 @@ capsuleButton.addEventListener(
 
                             url:
                                 window.location.href,
+
+                            source:
+                                "ChatGPT",
 
                             messages:
                                 messages,
@@ -747,6 +1074,10 @@ capsuleButton.addEventListener(
             }
 
 
+            // ========================================
+            // CHECK CAPTURE
+            // ========================================
+
             let messages =
                 captured.messages;
 
@@ -759,6 +1090,9 @@ capsuleButton.addEventListener(
                 messages = [
 
                     {
+
+                        index:
+                            1,
 
                         role:
                             "unknown",
@@ -774,12 +1108,20 @@ capsuleButton.addEventListener(
             }
 
 
+            // ========================================
+            // CREATE HANDOFF PROMPT
+            // ========================================
+
             const promptContent =
                 createContinuationPrompt(
                     captured,
                     messages
                 );
 
+
+            // ========================================
+            // ASK FOR NAME
+            // ========================================
 
             const name =
                 askForName();
@@ -801,6 +1143,10 @@ capsuleButton.addEventListener(
             }
 
 
+            // ========================================
+            // CREATE SAVED PROMPT
+            // ========================================
+
             const prompt = {
 
                 id:
@@ -813,6 +1159,7 @@ capsuleButton.addEventListener(
                     promptContent,
 
                 source:
+                    captured.source ||
                     "ChatGPT",
 
                 sourceUrl:
@@ -827,6 +1174,10 @@ capsuleButton.addEventListener(
 
             };
 
+
+            // ========================================
+            // SAVE
+            // ========================================
 
             await savePrompt(
                 prompt
@@ -934,10 +1285,9 @@ importFile.addEventListener(
             let importedPrompt;
 
 
-            /*
-             * Support our generated
-             * prompt format.
-             */
+            // ========================================
+            // JSON FORMAT
+            // ========================================
 
             try {
 
@@ -994,17 +1344,15 @@ importFile.addEventListener(
                 jsonError
             ) {
 
-                /*
-                 * Not JSON.
-                 * Treat it as plain text.
-                 */
+                // Not JSON.
+                // Treat as plain text.
 
             }
 
 
-            /*
-             * Plain text file.
-             */
+            // ========================================
+            // PLAIN TEXT
+            // ========================================
 
             if (
                 !importedPrompt
@@ -1048,6 +1396,10 @@ importFile.addEventListener(
             }
 
 
+            // ========================================
+            // NAME IMPORTED PROMPT
+            // ========================================
+
             const name =
                 window.prompt(
                     "Name this prompt:",
@@ -1080,6 +1432,10 @@ importFile.addEventListener(
 
             }
 
+
+            // ========================================
+            // SAVE
+            // ========================================
 
             await savePrompt(
                 importedPrompt
@@ -1178,9 +1534,9 @@ async function renderLibrary() {
                 "prompt-card";
 
 
-            /*
-             * Make the card draggable.
-             */
+            // ========================================
+            // DRAGGABLE
+            // ========================================
 
             card.draggable =
                 true;
@@ -1189,6 +1545,10 @@ async function renderLibrary() {
             card.dataset.promptId =
                 prompt.id;
 
+
+            // ========================================
+            // NAME
+            // ========================================
 
             const nameContainer =
                 document.createElement(
@@ -1234,6 +1594,10 @@ async function renderLibrary() {
             );
 
 
+            // ========================================
+            // ARROW
+            // ========================================
+
             const arrow =
                 document.createElement(
                     "span"
@@ -1258,9 +1622,9 @@ async function renderLibrary() {
             );
 
 
-            /*
-             * Click = open prompt.
-             */
+            // ========================================
+            // CLICK
+            // ========================================
 
             card.addEventListener(
                 "click",
@@ -1274,9 +1638,9 @@ async function renderLibrary() {
             );
 
 
-            /*
-             * Drag = provide prompt text.
-             */
+            // ========================================
+            // DRAG
+            // ========================================
 
             card.addEventListener(
                 "dragstart",

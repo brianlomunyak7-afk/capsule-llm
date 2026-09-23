@@ -2,28 +2,178 @@
     box-sizing: border-box;
 }
 
+html,
 body {
     margin: 0;
     width: 380px;
     min-height: 500px;
+}
+
+body {
+    position: relative;
+    overflow: hidden;
+
     font-family: Inter, Arial, sans-serif;
-    background: #0b0b12;
+
+    background:
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(124, 58, 237, 0.22),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 90% 25%,
+            rgba(37, 99, 235, 0.18),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 30% 90%,
+            rgba(236, 72, 153, 0.14),
+            transparent 28%
+        ),
+        #070812;
+
     color: #ffffff;
 }
 
+
+/* ========================================
+   PLAYFUL BACKGROUND
+======================================== */
+
+body::before {
+    content: "";
+
+    position: fixed;
+
+    width: 240px;
+    height: 240px;
+
+    top: -100px;
+    right: -80px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(139, 92, 246, 0.45),
+            rgba(59, 130, 246, 0.12) 45%,
+            transparent 70%
+        );
+
+    filter: blur(12px);
+
+    animation: floatOrb 9s ease-in-out infinite alternate;
+
+    pointer-events: none;
+
+    z-index: 0;
+}
+
+
+body::after {
+    content: "";
+
+    position: fixed;
+
+    width: 280px;
+    height: 180px;
+
+    bottom: -100px;
+    left: -100px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(236, 72, 153, 0.30),
+            rgba(124, 58, 237, 0.15) 45%,
+            transparent 70%
+        );
+
+    filter: blur(15px);
+
+    animation: floatOrbBottom 11s ease-in-out infinite alternate;
+
+    pointer-events: none;
+
+    z-index: 0;
+}
+
+
+/* ========================================
+   MOVING GLOW
+======================================== */
+
+@keyframes floatOrb {
+
+    0% {
+        transform:
+            translate(0, 0)
+            scale(1);
+    }
+
+    50% {
+        transform:
+            translate(-35px, 25px)
+            scale(1.12);
+    }
+
+    100% {
+        transform:
+            translate(-10px, 55px)
+            scale(0.95);
+    }
+}
+
+
+@keyframes floatOrbBottom {
+
+    0% {
+        transform:
+            translate(0, 0)
+            scale(1);
+    }
+
+    50% {
+        transform:
+            translate(45px, -25px)
+            scale(1.15);
+    }
+
+    100% {
+        transform:
+            translate(80px, -45px)
+            scale(0.9);
+    }
+}
+
+
+/* ========================================
+   CONTAINER
+======================================== */
+
 .container {
+    position: relative;
+
+    z-index: 2;
+
     padding: 18px;
 }
 
 
-/* =========================
+/* ========================================
    HEADER
-========================= */
+======================================== */
 
 .header {
     display: flex;
     align-items: center;
+
     gap: 12px;
+
     margin-bottom: 24px;
 }
 
@@ -36,7 +186,16 @@ body {
     justify-content: center;
 
     border-radius: 12px;
-    background: #18152b;
+
+    background:
+        linear-gradient(
+            145deg,
+            #191532,
+            #111022
+        );
+
+    box-shadow:
+        0 0 20px rgba(124, 58, 237, 0.18);
 
     font-size: 21px;
 }
@@ -52,22 +211,25 @@ body {
     margin: 4px 0 0;
 
     color: #858595;
+
     font-size: 12px;
 }
 
 
-/* =========================
+/* ========================================
    MAIN ACTIONS
-========================= */
+======================================== */
 
 .main-actions {
     display: flex;
     flex-direction: column;
+
     gap: 9px;
 }
 
 .main-actions button {
     width: 100%;
+
     padding: 13px;
 
     border: none;
@@ -76,38 +238,72 @@ body {
     cursor: pointer;
 
     color: #ffffff;
+
     font-size: 13px;
     font-weight: 600;
 
     transition:
         background 0.15s ease,
-        transform 0.1s ease;
+        transform 0.1s ease,
+        box-shadow 0.2s ease;
 }
 
 .main-actions button:active {
     transform: scale(0.98);
 }
 
+
+/* ========================================
+   GENERATE BUTTON
+======================================== */
+
 .generate-button {
-    background: #6c4cff;
+    background:
+        linear-gradient(
+            135deg,
+            #6847ff,
+            #7c4dff
+        );
+
+    box-shadow:
+        0 0 18px rgba(108, 76, 255, 0.20);
 }
 
 .generate-button:hover {
-    background: #7b61ff;
+    background:
+        linear-gradient(
+            135deg,
+            #765aff,
+            #8a62ff
+        );
+
+    box-shadow:
+        0 0 24px rgba(108, 76, 255, 0.32);
 }
 
+
+/* ========================================
+   DROP BUTTON
+======================================== */
+
 .drop-button {
-    background: #1c1c28;
+    background:
+        rgba(28, 28, 40, 0.82);
+
+    border: 1px solid rgba(255, 255, 255, 0.04) !important;
+
+    backdrop-filter: blur(8px);
 }
 
 .drop-button:hover {
-    background: #29293a;
+    background:
+        rgba(41, 41, 58, 0.90);
 }
 
 
-/* =========================
+/* ========================================
    STATUS
-========================= */
+======================================== */
 
 .status {
     min-height: 18px;
@@ -120,9 +316,9 @@ body {
 }
 
 
-/* =========================
+/* ========================================
    SAVED PROMPTS
-========================= */
+======================================== */
 
 .saved-section {
     margin-top: 22px;
@@ -144,17 +340,19 @@ body {
 
 .library-count {
     color: #777789;
+
     font-size: 11px;
 }
 
 
-/* =========================
+/* ========================================
    LIBRARY
-========================= */
+======================================== */
 
 .library {
     display: flex;
     flex-direction: column;
+
     gap: 7px;
 }
 
@@ -168,23 +366,32 @@ body {
     border: 1px solid #252532;
     border-radius: 10px;
 
-    background: #14141d;
+    background:
+        rgba(20, 20, 29, 0.78);
+
+    backdrop-filter: blur(8px);
 
     cursor: pointer;
 
     transition:
         background 0.15s ease,
-        border 0.15s ease;
+        border 0.15s ease,
+        transform 0.15s ease;
 }
 
 .prompt-card:hover {
-    background: #1b1b27;
+    background:
+        rgba(27, 27, 39, 0.90);
+
     border-color: #38384d;
+
+    transform: translateY(-1px);
 }
 
 .prompt-name {
     display: flex;
     align-items: center;
+
     gap: 9px;
 
     min-width: 0;
@@ -205,13 +412,14 @@ body {
 
 .prompt-arrow {
     color: #666677;
+
     font-size: 14px;
 }
 
 
-/* =========================
+/* ========================================
    EMPTY STATE
-========================= */
+======================================== */
 
 .empty-library {
     padding: 25px 10px;
@@ -234,9 +442,9 @@ body {
 }
 
 
-/* =========================
+/* ========================================
    PROMPT PREVIEW
-========================= */
+======================================== */
 
 .prompt-preview {
     display: none;
@@ -247,7 +455,10 @@ body {
     border: 1px solid #292938;
     border-radius: 11px;
 
-    background: #12121b;
+    background:
+        rgba(18, 18, 27, 0.90);
+
+    backdrop-filter: blur(12px);
 }
 
 .prompt-preview.visible {
@@ -272,6 +483,7 @@ body {
     border: none;
 
     background: transparent;
+
     color: #777789;
 
     cursor: pointer;
@@ -296,16 +508,19 @@ body {
 
     outline: none;
 
-    background: #08080d;
+    background: rgba(8, 8, 13, 0.88);
+
     color: #bdbdca;
 
     font-family: Inter, Arial, sans-serif;
+
     font-size: 10px;
     line-height: 1.5;
 }
 
 .preview-actions {
     display: flex;
+
     gap: 7px;
 
     margin-top: 9px;
@@ -320,6 +535,7 @@ body {
     border-radius: 8px;
 
     background: #242432;
+
     color: #ffffff;
 
     cursor: pointer;
@@ -340,9 +556,9 @@ body {
 }
 
 
-/* =========================
+/* ========================================
    FOOTER
-========================= */
+======================================== */
 
 footer {
     display: flex;
@@ -351,7 +567,7 @@ footer {
     margin-top: 22px;
     padding-top: 11px;
 
-    border-top: 1px solid #1d1d28;
+    border-top: 1px solid rgba(29, 29, 40, 0.8);
 
     color: #565665;
 

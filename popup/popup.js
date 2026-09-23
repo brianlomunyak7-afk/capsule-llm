@@ -1278,7 +1278,26 @@ async function renderLibrary() {
              * Drag = provide prompt text.
              */
 
-           s
+            card.addEventListener(
+                "dragstart",
+                event => {
+
+                    event.dataTransfer.setData(
+                        "text/plain",
+                        prompt.content
+                    );
+
+
+                    event.dataTransfer.effectAllowed =
+                        "copy";
+
+
+                    setStatus(
+                        `Dragging ${prompt.name}...`
+                    );
+
+                }
+            );
 
 
             library.appendChild(
@@ -1287,8 +1306,8 @@ async function renderLibrary() {
 
         }
     );
-}
 
+}
 
 
 // ========================================

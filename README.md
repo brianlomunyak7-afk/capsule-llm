@@ -2,52 +2,41 @@
 
 > **Carry your conversation anywhere.**
 
-LLM Capsule is a Chrome extension designed to capture AI conversations and package them into a portable conversation capsule that can be saved, exported, and eventually transferred between different AI platforms.
+LLM Capsule is a Chrome extension that helps you move an AI conversation from one session or AI tool to another without having to manually explain the whole task again.
 
-## 🚧 Project Status
+It captures the conversation, turns it into a structured continuation prompt, and lets you save, copy, import, and reuse that prompt.
 
-**Current version:** `0.1.0`
+---
 
-The project is currently in early development.
+## ✨ What LLM Capsule Does
 
-### Working now
+Imagine you have been working with an AI for hours on a project.
 
-- Capture conversations from supported web pages
-- Extract ChatGPT messages
-- Preserve user and assistant roles
-- Store capsules locally in Chrome
-- View saved capsules
-- Export capsules as JSON
+You have already discussed:
 
-### Planned
+- the project goal
+- decisions you made
+- code
+- errors
+- solutions
+- unfinished tasks
+- important instructions
 
-- Import capsules
-- Continue conversations from imported capsules
-- Claude support
-- Gemini support
-- Conversation validation
-- Smart context preservation
-- Capsule library/history
-- Improved UI
-- One-click cross-LLM transfer
+Then you reach a session limit or want to switch to another AI.
 
-## 🎯 Vision
+Instead of starting over, LLM Capsule lets you create a **conversation handoff prompt**.
 
-The goal is to make AI conversations portable.
+### Basic workflow
 
 ```text
-ChatGPT
-   ↓
-Capture
-   ↓
-🟣 LLM Capsule
-   ↓
-Export
-   ↓
-📦 llm-capsule.json
-   ↓
-Import
-   ↓
-Another LLM
-   ↓
-Continue the conversation
+AI Conversation
+       ↓
+Generate Prompt
+       ↓
+Name & Save
+       ↓
+Saved Prompts
+       ↓
+Copy / Drop into AI
+       ↓
+Continue the work
